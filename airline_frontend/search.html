@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Flights - Nimbus Airlines</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>✈️ Nimbus Airlines</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="search.html">Search</a></li>
+                <li><a href="#" id="logoutBtn">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Search Flights</h2>
+        
+        <form id="searchForm" class="search-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>From</label>
+                    <input type="text" id="source" placeholder="e.g., DEL" required>
+                </div>
+                <div class="form-group">
+                    <label>To</label>
+                    <input type="text" id="destination" placeholder="e.g., MUM" required>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" id="date" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Search Flights</button>
+        </form>
+
+        <!-- Direct Flights Section -->
+        <div id="directFlightsSection" style="display: none;">
+            <h3>✈️ Direct Flights</h3>
+            <div id="directFlights"></div>
+        </div>
+
+        <!-- Connecting Flights Section -->
+        <div id="connectingFlightsSection" style="display: none;">
+            <h3>🔄 Connecting Flights (with layover)</h3>
+            <div id="connectingFlights"></div>
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResults" style="display: none;">
+            <p class="no-results">😔 No flights found for this route and date.</p>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        // CHECK AUTH - PREVENT ACCESS WITHOUT LOGIN
+        const passenger = localStorage.getItem('passenger');
+        if (!passenger) {
+            alert('⚠️ Please login first to search flights');
+            window.location.href = 'login.html';
+        }
+        
+        checkAuth();
+        
+        // Set minimum date to today
+        document.getElementById('date').min = new Date().toISOString().split('T')[0];
+        
+        document.getElementById('searchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const source = document.getElementById('source').value.toUpperCase();
+            const destination = document.getElementById('destination').value.toUpperCase();
+            const date = document.getElementById('date').value;
+            
+            console.log('Searching flights:', { source, destination, date });
+            
+            // Hide all sections first
+            document.getElementById('directFlightsSection').style.display = 'none';
+            document.getElementById('connectingFlightsSection').style.display = 'none';
+            document.getElementById('noResults').style.display = 'none';
+            
+            try {
+                // Search for direct flights
+                const directResponse = await fetch(
+                    `http://localhost:8080/api/flights/search?source=${source}&destination=${destination}&date=${date}`
+                );
+                const directFlights = await directResponse.json();
+                
+                console.log('Direct flights found:', directFlights.length);
+                
+                // Search for connecting flights
+                const connectingResponse = await fetch(
+                    `http://localhost:8080/api/flights/search/connecting?source=${source}&destination=${destination}&date=${date}`
+                );
+                const connectingFlights = await connectingResponse.json();
+                
+                console.log('Connecting flights found:', connectingFlights.length);
+                
+                // Display results
+                if (directFlights.length > 0) {
+                    displayDirectFlights(directFlights);
+                }
+                
+                if (connectingFlights.length > 0) {
+                    displayConnectingFlights(connectingFlights);
+                }
+                
+                // Show no results if both are empty
+                if (directFlights.length === 0 && connectingFlights.length === 0) {
+                    document.getElementById('noResults').style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Error searching flights:', error);
+                alert('Error searching flights. Please try again.');
+            }
+        });
+        
+        function displayDirectFlights(flights) {
+            const container = document.getElementById('directFlights');
+            document.getElementById('directFlightsSection').style.display = 'block';
+            
+            container.innerHTML = flights.map(flight => `
+                <div class="flight-card direct-flight">
+                    <div class="flight-header">
+                        <span class="flight-badge direct">Direct Flight</span>
+                    </div>
+                    <div class="flight-info">
+                        <h4>${flight.flightNumber} - ${flight.airline}</h4>
+                        <div class="route-info">
+                            <div class="city-time">
+                                <span class="city">${flight.source}</span>
+                                <span class="time">${formatTime(flight.departureTime)}</span>
+                            </div>
+                            <div class="flight-path">
+                                <span class="duration">Direct</span>
+                                <div class="line">→</div>
+                            </div>
+                            <div class="city-time">
+                                <span class="city">${flight.destination}</span>
+                                <span class="time">${formatTime(flight.arrivalTime)}</span>
+                            </div>
+                        </div>
+                        <p class="date">📅 ${formatDate(flight.departureDate)}</p>
+                        <p class="seats">💺 ${flight.availableSeats} seats available</p>
+                        <div class="price-classes">
+                            <div class="class-option">
+                                <span>Economy</span>
+                                <span class="class-price">₹${flight.economyPrice}</span>
+                            </div>
+                            <div class="class-option">
+                                <span>Business</span>
+                                <span class="class-price">₹${flight.businessPrice}</span>
+                            </div>
+                            <div class="class-option">
+                                <span>First Class</span>
+                                <span class="class-price">₹${flight.firstClassPrice}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button onclick="bookDirectFlight(${flight.id})" class="btn btn-success">Book Now</button>
+                </div>
+            `).join('');
+        }
+        
+        function displayConnectingFlights(connections) {
+            const container = document.getElementById('connectingFlights');
+            document.getElementById('connectingFlightsSection').style.display = 'block';
+            
+            container.innerHTML = connections.map(conn => {
+                const flight1 = conn.flight1;
+                const flight2 = conn.flight2;
+                const layoverHours = conn.layoverHours;
+                const totalPrice = conn.totalPrice;
+                
+                return `
+                    <div class="flight-card connecting-flight">
+                        <div class="flight-header">
+                            <span class="flight-badge connecting">Connecting Flight</span>
+                            <span class="layover-badge">Layover: ${layoverHours}h in ${conn.layoverCity}</span>
+                        </div>
+                        
+                        <!-- First Flight -->
+                        <div class="flight-segment">
+                            <div class="segment-header">Flight 1</div>
+                            <div class="flight-info">
+                                <h4>${flight1.flightNumber} - ${flight1.airline}</h4>
+                                <div class="route-info">
+                                    <div class="city-time">
+                                        <span class="city">${flight1.source}</span>
+                                        <span class="time">${formatTime(flight1.departureTime)}</span>
+                                    </div>
+                                    <div class="flight-path">
+                                        <span class="duration">→</span>
+                                    </div>
+                                    <div class="city-time">
+                                        <span class="city">${flight1.destination}</span>
+                                        <span class="time">${formatTime(flight1.arrivalTime)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Layover -->
+                        <div class="layover-info">
+                            ⏱️ ${layoverHours} hour layover in ${conn.layoverCity}
+                        </div>
+                        
+                        <!-- Second Flight -->
+                        <div class="flight-segment">
+                            <div class="segment-header">Flight 2</div>
+                            <div class="flight-info">
+                                <h4>${flight2.flightNumber} - ${flight2.airline}</h4>
+                                <div class="route-info">
+                                    <div class="city-time">
+                                        <span class="city">${flight2.source}</span>
+                                        <span class="time">${formatTime(flight2.departureTime)}</span>
+                                    </div>
+                                    <div class="flight-path">
+                                        <span class="duration">→</span>
+                                    </div>
+                                    <div class="city-time">
+                                        <span class="city">${flight2.destination}</span>
+                                        <span class="time">${formatTime(flight2.arrivalTime)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="connecting-total">
+                            <span>Total Price (Economy):</span>
+                            <span class="price">₹${totalPrice}</span>
+                        </div>
+                        
+                        <button onclick="bookConnectingFlight(${flight1.id}, ${flight2.id})" 
+                                class="btn btn-success">Book Connecting Flight</button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function formatTime(time) {
+            return time.substring(0, 5); // HH:MM
+        }
+        
+        function formatDate(date) {
+            return new Date(date).toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+        
+        function bookDirectFlight(flightId) {
+            localStorage.setItem('selectedFlight', flightId);
+            localStorage.setItem('isConnecting', 'false');
+            window.location.href = 'booking.html';
+        }
+        
+        function bookConnectingFlight(flight1Id, flight2Id) {
+            localStorage.setItem('selectedFlight', flight1Id);
+            localStorage.setItem('connectingFlightId', flight2Id);
+            localStorage.setItem('isConnecting', 'true');
+            window.location.href = 'booking.html';
+        }
+    </script>
+</body>
+</html>

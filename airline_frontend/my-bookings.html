@@ -1,0 +1,220 @@
+<!-- ============================================ -->
+<!-- FILE LOCATION: airline-frontend/my-bookings.html -->
+<!-- UPDATED: Multi-Seat Display Support -->
+<!-- ============================================ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - Nimbus Airlines</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>✈️ Nimbus Airlines</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="search.html">Search Flights</a></li>
+                <li><a href="profile.html">My Profile</a></li>
+                <li><a href="my-bookings.html" class="active">My Bookings</a></li>
+                <li><a href="#" id="logoutBtn">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>My Bookings</h2>
+        
+        <div id="bookingsList"></div>
+        <div id="noBookings" style="display: none;">
+            <p class="no-results">You have no bookings yet. <a href="search.html">Book a flight now!</a></p>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        (function() {
+            const passenger = localStorage.getItem('passenger');
+            if (!passenger) {
+                alert('⚠️ Please login to view your bookings');
+                window.location.href = 'login.html';
+                return;
+            }
+            checkAuth();
+            loadBookings();
+        })();
+        
+        async function loadBookings() {
+            const passenger = JSON.parse(localStorage.getItem('passenger'));
+            
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/api/bookings/passenger/${passenger.id}`
+                );
+                const bookings = await response.json();
+                
+                if (bookings.length === 0) {
+                    document.getElementById('noBookings').style.display = 'block';
+                    return;
+                }
+                
+                await displayBookings(bookings);
+            } catch (error) {
+                console.error('Error loading bookings:', error);
+                alert('Error loading bookings. Please try again.');
+            }
+        }
+        
+        async function displayBookings(bookings) {
+            const container = document.getElementById('bookingsList');
+            
+            const bookingPromises = bookings.map(async (booking) => {
+                let routeDisplay = `${booking.flight.source} → ${booking.flight.destination}`;
+                let flightInfo = `${booking.flight.flightNumber}`;
+                let isConnecting = false;
+                let flight2 = null;
+                
+                // ✅ NEW: Parse seat numbers
+                let seatDisplay = '';
+                if (booking.seatNumbers) {
+                    try {
+                        const seats = JSON.parse(booking.seatNumbers);
+                        seatDisplay = Object.entries(seats)
+                            .map(([key, seat], index) => `Flight ${index + 1}: ${seat}`)
+                            .join(', ');
+                    } catch (e) {
+                        seatDisplay = booking.seatNumber || 'Not assigned';
+                    }
+                } else {
+                    seatDisplay = booking.seatNumber || 'Not assigned';
+                }
+                
+                if (booking.isConnecting && booking.connectingFlightId) {
+                    isConnecting = true;
+                    try {
+                        const response = await fetch(`http://localhost:8080/api/flights/${booking.connectingFlightId}`);
+                        if (response.ok) {
+                            flight2 = await response.json();
+                            routeDisplay = `${booking.flight.source} → ${booking.flight.destination} → ${flight2.destination}`;
+                            flightInfo = `${booking.flight.flightNumber}, ${flight2.flightNumber}`;
+                        }
+                    } catch (error) {
+                        console.error('Error loading connecting flight:', error);
+                    }
+                }
+                
+                return { ...booking, routeDisplay, flightInfo, isConnecting, flight2, seatDisplay };
+            });
+            
+            const processedBookings = await Promise.all(bookingPromises);
+            
+            container.innerHTML = processedBookings.map(booking => `
+                <div class="booking-card ${booking.status === 'CANCELLED' ? 'cancelled' : ''}">
+                    <div class="booking-header">
+                        <h3>Booking #${booking.id}</h3>
+                        <span class="status-badge ${booking.status.toLowerCase()}">${booking.status}</span>
+                    </div>
+                    
+                    ${booking.isConnecting ? `
+                    <div style="background: #fff3cd; padding: 10px; margin-bottom: 15px; border-radius: 5px; text-align: center;">
+                        <strong>🔄 Connecting Flight</strong>
+                    </div>
+                    ` : ''}
+                    
+                    <div class="booking-content">
+                        <div class="booking-row">
+                            <div>
+                                <strong>Flight${booking.isConnecting ? 's' : ''}:</strong> ${booking.flightInfo}
+                            </div>
+                            <div>
+                                <strong>Date:</strong> ${new Date(booking.flight.departureDate).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'})}
+                            </div>
+                        </div>
+                        
+                        <div class="booking-row">
+                            <div>
+                                <strong>Complete Route:</strong> 
+                                <span style="color: #667eea; font-weight: bold; font-size: 16px;">${booking.routeDisplay}</span>
+                            </div>
+                            <div>
+                                <strong>Time:</strong> ${booking.flight.departureTime.substring(0,5)} - ${booking.flight.arrivalTime.substring(0,5)}
+                            </div>
+                        </div>
+                        
+                        ${booking.isConnecting && booking.flight2 ? `
+                        <div class="booking-row">
+                            <div>
+                                <strong>Flight 2 Time:</strong> ${booking.flight2.departureTime.substring(0,5)} - ${booking.flight2.arrivalTime.substring(0,5)}
+                            </div>
+                            <div>
+                                <strong>Layover:</strong> ${booking.flight.destination}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="booking-row">
+                            <div>
+                                <strong>Class:</strong> <span style="color: #856404; font-weight: bold;">${booking.flightClass || 'ECONOMY'}</span>
+                            </div>
+                            <div>
+                                <strong>Seat${booking.isConnecting ? 's' : ''}:</strong> <span style="color: #667eea; font-weight: bold;">${booking.seatDisplay}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="booking-row">
+                            <div>
+                                <strong>Luggage:</strong> ${booking.luggageWeight || 0}kg
+                            </div>
+                            <div>
+                                <strong>Booked on:</strong> ${new Date(booking.bookingDate).toLocaleDateString('en-IN')}
+                            </div>
+                        </div>
+                        
+                        <div class="booking-total">
+                            <strong>Total Amount:</strong> ₹${booking.totalAmount.toFixed(2)}
+                        </div>
+                    </div>
+                    
+                    <div class="booking-actions">
+                        ${booking.status === 'CONFIRMED' ? `
+                            <button onclick="viewTicket(${booking.id})" class="btn btn-primary">View Ticket</button>
+                            <button onclick="cancelBooking(${booking.id})" class="btn btn-danger">Cancel Booking</button>
+                        ` : `
+                            <button class="btn btn-secondary" disabled>Cancelled</button>
+                        `}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function viewTicket(bookingId) {
+            window.location.href = `ticket.html?bookingId=${bookingId}`;
+        }
+        
+        async function cancelBooking(bookingId) {
+            if (!confirm('Are you sure you want to cancel this booking?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(
+                    `http://localhost:8080/api/bookings/${bookingId}/cancel`,
+                    { method: 'PUT' }
+                );
+                
+                if (response.ok) {
+                    alert('✅ Booking cancelled successfully! Seat has been released.');
+                    loadBookings();
+                } else {
+                    alert('❌ Failed to cancel booking');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('❌ Error cancelling booking');
+            }
+        }
+    </script>
+</body>
+</html>

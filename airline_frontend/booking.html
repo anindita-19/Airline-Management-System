@@ -1,0 +1,411 @@
+<!-- ============================================ -->
+<!-- FILE LOCATION: airline-frontend/booking.html -->
+<!-- UPDATED: Multi-Seat Selection for Connecting Flights -->
+<!-- ============================================ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Flight - Nimbus Airlines</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>✈️ Nimbus Airlines</h1>
+            <ul class="nav-links">
+                <li><a href="search.html">Search</a></li>
+                <li><a href="my-bookings.html">My Bookings</a></li>
+                <li><a href="#" id="logoutBtn">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>Complete Your Booking</h2>
+
+        <div id="flightDetails" class="booking-summary"></div>
+
+        <div class="booking-step">
+            <h3>Step 1: Select Flight Class</h3>
+            <div class="class-selection" id="classSelection"></div>
+        </div>
+
+        <!-- ✅ NEW: Dynamic seat selection sections -->
+        <div id="seatSelectionContainer"></div>
+
+        <div class="booking-step" id="luggageStep" style="display:none;">
+            <h3 id="luggageStepNumber">Step 3: Enter Luggage Details</h3>
+            <div class="luggage-input">
+                <label for="luggageWeight">Luggage Weight (kg)</label>
+                <input type="number" id="luggageWeight" min="0" max="100" value="20">
+                <p id="luggageCharges" style="margin-top:10px; color:#666;"></p>
+            </div>
+        </div>
+
+        <div id="bookingSummary" class="booking-final" style="display:none;">
+            <h3>Booking Summary</h3>
+            <div class="summary-details">
+                <div class="summary-row"><span>Flight Class:</span><span id="summaryClass"></span></div>
+                <div id="summarySeatInfo"></div>
+                <div class="summary-row"><span>Base Fare:</span><span id="summaryBaseFare"></span></div>
+                <div class="summary-row"><span>Luggage Weight:</span><span id="summaryLuggage"></span></div>
+                <div class="summary-row"><span>Luggage Charges:</span><span id="summaryLuggageCharges"></span></div>
+                <div class="summary-row total"><span>Total Amount:</span><span id="summaryTotal"></span></div>
+            </div>
+            <button class="btn btn-primary" onclick="confirmBooking()">Proceed to Payment</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Nimbus Airlines. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        checkAuth();
+
+        let flight1 = null, flight2 = null;
+        let selectedClass = 'ECONOMY';
+        let selectedSeats = {}; // ✅ NEW: {flight1: "12A", flight2: "14C"}
+        let allSeats1 = [], allSeats2 = [];
+        let isConnecting = false;
+        let flights = []; // ✅ NEW: Array of all flight segments
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadFlightDetails();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            const luggageInput = document.getElementById('luggageWeight');
+            if (luggageInput) luggageInput.addEventListener('input', calculateTotal);
+
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); logout(); });
+        }
+
+        async function loadFlightDetails() {
+            const flight1Id = localStorage.getItem('selectedFlight');
+            const flight2Id = localStorage.getItem('connectingFlightId');
+            const connectingFlag = localStorage.getItem('isConnecting');
+
+            if (!flight1Id) {
+                alert('No flight selected');
+                window.location.href = 'search.html';
+                return;
+            }
+
+            isConnecting = connectingFlag === 'true';
+
+            try {
+                flight1 = await fetchFlight(flight1Id);
+                flights.push({flight: flight1, key: 'flight1'});
+                
+                if (isConnecting && flight2Id) {
+                    flight2 = await fetchFlight(flight2Id);
+                    flights.push({flight: flight2, key: 'flight2'});
+                }
+                
+                displayFlightDetails();
+                displayClassOptions();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading flights');
+            }
+        }
+
+        async function fetchFlight(flightId) {
+            const response = await fetch(`http://localhost:8080/api/flights/${flightId}`);
+            if (!response.ok) throw new Error('Flight not found');
+            return await response.json();
+        }
+
+        function displayFlightDetails() {
+            let html = `<h3>Flight Details</h3><div style="background:#f8f9fa; padding:20px; border-radius:8px; margin-top:10px;">`;
+            
+            flights.forEach((item, index) => {
+                const f = item.flight;
+                html += `<div style="${index > 0 ? 'margin-top:15px; padding-top:15px; border-top:2px solid #ddd;' : ''}">`;
+                if (flights.length > 1) {
+                    html += `<strong style="color:#667eea;">Flight ${index + 1}:</strong><br>`;
+                }
+                html += `${f.flightNumber} - ${f.airline || 'Nimbus Airlines'}<br>`;
+                html += `${f.source} → ${f.destination}<br>`;
+                html += `${formatDate(f.departureDate)} | ${formatTime(f.departureTime)} - ${formatTime(f.arrivalTime)}`;
+                html += `</div>`;
+            });
+            
+            html += '</div>';
+            document.getElementById('flightDetails').innerHTML = html;
+        }
+
+        function displayClassOptions() {
+            const classes = [
+                { name: 'ECONOMY', icon: '💺', title: 'Economy', desc: 'Standard seating', luggage: '20kg free', price: flight1.economyPrice || flight1.price },
+                { name: 'BUSINESS', icon: '🛋️', title: 'Business', desc: 'Premium comfort', luggage: '30kg free', price: flight1.businessPrice || (flight1.price * 2) },
+                { name: 'FIRST', icon: '👑', title: 'First Class', desc: 'Luxury experience', luggage: '40kg free', price: flight1.firstClassPrice || (flight1.price * 3) }
+            ];
+
+            let html = '';
+            classes.forEach(cls => {
+                let totalPrice = cls.price;
+                if (isConnecting && flight2) {
+                    const f2Price = cls.name === 'ECONOMY' ? (flight2.economyPrice || flight2.price) :
+                                   cls.name === 'BUSINESS' ? (flight2.businessPrice || flight2.price * 2) :
+                                   (flight2.firstClassPrice || flight2.price * 3);
+                    totalPrice += f2Price;
+                }
+                
+                html += `<div class="class-card ${cls.name === 'ECONOMY' ? 'active' : ''}" data-class="${cls.name}" onclick="selectClass('${cls.name}')">
+                    <div class="class-icon">${cls.icon}</div><h4>${cls.title}</h4><p>${cls.desc}</p>
+                    <p class="class-luggage">${cls.luggage}</p><p class="class-price">₹${totalPrice.toFixed(0)}</p>
+                    <div class="class-check">✓</div></div>`;
+            });
+
+            document.getElementById('classSelection').innerHTML = html;
+            selectClass('ECONOMY');
+        }
+
+        async function selectClass(className) {
+            selectedClass = className;
+            document.querySelectorAll('.class-card').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.class-card[data-class="${className}"]`).classList.add('active');
+            selectedSeats = {}; // ✅ Reset all seat selections
+            await loadAllSeats();
+            displaySeatSelectionSections();
+        }
+
+        // ✅ NEW: Load seats for all flight segments
+        async function loadAllSeats() {
+            try {
+                const res1 = await fetch(`http://localhost:8080/api/seats/flight/${flight1.id}/class/${selectedClass}`);
+                allSeats1 = await res1.json();
+                
+                if (isConnecting && flight2) {
+                    const res2 = await fetch(`http://localhost:8080/api/seats/flight/${flight2.id}/class/${selectedClass}`);
+                    allSeats2 = await res2.json();
+                }
+            } catch (error) {
+                console.error('Error loading seats:', error);
+            }
+        }
+
+        // ✅ NEW: Display separate seat selection for each flight
+        function displaySeatSelectionSections() {
+            const container = document.getElementById('seatSelectionContainer');
+            let html = '';
+            let stepNumber = 2;
+
+            flights.forEach((item, index) => {
+                const flightSeats = index === 0 ? allSeats1 : allSeats2;
+                const flightKey = item.key;
+                const flightInfo = item.flight;
+
+                html += `
+                    <div class="booking-step" style="margin-bottom: 20px;">
+                        <h3>Step ${stepNumber}: Select Seat for Flight ${index + 1}</h3>
+                        <p style="color:#666; margin-bottom:15px;">
+                            ${flightInfo.flightNumber}: ${flightInfo.source} → ${flightInfo.destination}
+                        </p>
+                        <div class="seat-legend">
+                            <div><span class="legend-seat available"></span> Available</div>
+                            <div><span class="legend-seat selected"></span> Selected</div>
+                            <div><span class="legend-seat booked"></span> Booked</div>
+                        </div>
+                        <div id="seatMapContainer_${flightKey}">
+                            <div id="seatMap_${flightKey}" class="seat-map"></div>
+                        </div>
+                        <p id="selectedSeatInfo_${flightKey}" style="margin-top:15px; font-weight:bold; color:#667eea;"></p>
+                    </div>
+                `;
+                stepNumber++;
+            });
+
+            container.innerHTML = html;
+
+            // Update luggage step number
+            document.getElementById('luggageStepNumber').textContent = `Step ${stepNumber}: Enter Luggage Details`;
+
+            // Display seat maps
+            flights.forEach((item, index) => {
+                displaySeatMap(item.key, index === 0 ? allSeats1 : allSeats2);
+            });
+        }
+
+        // ✅ UPDATED: Display seat map for specific flight
+        function displaySeatMap(flightKey, seats) {
+            const container = document.getElementById(`seatMap_${flightKey}`);
+            if (!seats || seats.length === 0) {
+                container.innerHTML = '<p style="color: red;">No seats available. Add seats to database.</p>';
+                return;
+            }
+
+            const rows = {};
+            seats.forEach(s => {
+                const row = s.seatNumber.match(/\d+/)[0];
+                if (!rows[row]) rows[row] = [];
+                rows[row].push(s);
+            });
+
+            let html = `<h4 style="text-align:center; color:#667eea; margin-bottom:10px;">Select Seat</h4>`;
+            Object.keys(rows).sort((a,b) => parseInt(a) - parseInt(b)).forEach(row => {
+                html += `<div class="seat-row"><span class="row-number">${row}</span>`;
+                rows[row].sort((a,b) => a.seatNumber.localeCompare(b.seatNumber)).forEach(seat => {
+                    const isSelected = selectedSeats[flightKey] === seat.seatNumber;
+                    const cls = isSelected ? 'selected' : (seat.isAvailable ? 'available' : 'booked');
+                    const dis = !seat.isAvailable ? 'disabled' : '';
+                    const letter = seat.seatNumber.match(/[A-Z]/)[0];
+                    html += `<button class="seat ${cls}" ${dis} onclick="selectSeat('${flightKey}', '${seat.seatNumber}')">${letter}</button>`;
+                });
+                html += '</div>';
+            });
+
+            container.innerHTML = html;
+        }
+
+        // ✅ UPDATED: Select seat for specific flight
+        function selectSeat(flightKey, seatNum) {
+            selectedSeats[flightKey] = seatNum;
+            
+            // Refresh all seat maps
+            flights.forEach((item, index) => {
+                displaySeatMap(item.key, index === 0 ? allSeats1 : allSeats2);
+            });
+            
+            // Update info
+            document.getElementById(`selectedSeatInfo_${flightKey}`).textContent = `Selected Seat: ${seatNum}`;
+            
+            // Check if all seats are selected
+            const allSelected = flights.every(item => selectedSeats[item.key]);
+            if (allSelected) {
+                document.getElementById('luggageStep').style.display = 'block';
+                calculateTotal();
+            }
+        }
+
+        function calculateTotal() {
+            // Check if all seats selected
+            const allSelected = flights.every(item => selectedSeats[item.key]);
+            if (!allSelected) return;
+
+            const luggageWeight = parseFloat(document.getElementById('luggageWeight').value) || 0;
+            
+            let baseFare = 0;
+            flights.forEach(item => {
+                const f = item.flight;
+                baseFare += selectedClass === 'ECONOMY' ? (f.economyPrice || f.price) :
+                           selectedClass === 'BUSINESS' ? (f.businessPrice || f.price * 2) :
+                           (f.firstClassPrice || f.price * 3);
+            });
+
+            const freeLimit = selectedClass === 'FIRST' ? 40 : selectedClass === 'BUSINESS' ? 30 : 20;
+            const luggageCharges = luggageWeight > freeLimit ? (luggageWeight - freeLimit) * 10 : 0;
+            const text = luggageCharges > 0 ? `Extra ${(luggageWeight - freeLimit).toFixed(1)}kg × ₹10 = ₹${luggageCharges.toFixed(0)}` : 'No extra charges';
+            document.getElementById('luggageCharges').textContent = text;
+            document.getElementById('bookingSummary').style.display = 'block';
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const luggageWeight = parseFloat(document.getElementById('luggageWeight').value) || 0;
+            
+            let baseFare = 0;
+            flights.forEach(item => {
+                const f = item.flight;
+                baseFare += selectedClass === 'ECONOMY' ? (f.economyPrice || f.price) :
+                           selectedClass === 'BUSINESS' ? (f.businessPrice || f.price * 2) :
+                           (f.firstClassPrice || f.price * 3);
+            });
+
+            const freeLimit = selectedClass === 'FIRST' ? 40 : selectedClass === 'BUSINESS' ? 30 : 20;
+            const luggageCharges = luggageWeight > freeLimit ? (luggageWeight - freeLimit) * 10 : 0;
+            const total = baseFare + luggageCharges;
+
+            document.getElementById('summaryClass').textContent = selectedClass;
+            
+            // ✅ NEW: Display all seats
+            let seatHtml = '';
+            flights.forEach((item, index) => {
+                seatHtml += `<div class="summary-row"><span>Seat (Flight ${index + 1}):</span><span>${selectedSeats[item.key] || 'Not selected'}</span></div>`;
+            });
+            document.getElementById('summarySeatInfo').innerHTML = seatHtml;
+            
+            document.getElementById('summaryBaseFare').textContent = `₹${baseFare.toFixed(0)}`;
+            document.getElementById('summaryLuggage').textContent = `${luggageWeight}kg`;
+            document.getElementById('summaryLuggageCharges').textContent = `₹${luggageCharges.toFixed(0)}`;
+            document.getElementById('summaryTotal').textContent = `₹${total.toFixed(0)}`;
+        }
+
+        async function confirmBooking() {
+            const passenger = JSON.parse(localStorage.getItem('passenger'));
+
+            // Check if all seats are selected
+            const allSelected = flights.every(item => selectedSeats[item.key]);
+            if (!allSelected) {
+                alert('❌ Please select seats for all flights');
+                return;
+            }
+
+            const luggageWeight = parseFloat(document.getElementById('luggageWeight').value) || 0;
+            
+            // ✅ NEW: Prepare booking data with multiple seats
+            const bookingData = {
+                passengerId: passenger.id,
+                flightId: flight1.id,
+                numberOfSeats: 1,
+                flightClass: selectedClass,
+                luggageWeight: luggageWeight,
+                isConnecting: isConnecting,
+                connectingFlightId: flight2 ? flight2.id : null
+            };
+
+            // ✅ NEW: Add seat data
+            if (isConnecting) {
+                bookingData.seatNumbers = selectedSeats; // Multi-seat object
+            } else {
+                bookingData.seatNumber = selectedSeats['flight1']; // Single seat (legacy)
+            }
+
+            console.log('Booking Data:', bookingData);
+
+            try {
+                const res = await fetch('http://localhost:8080/api/bookings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bookingData)
+                });
+
+                if (res.ok) {
+                    const booking = await res.json();
+                    console.log('Booking Response:', booking);
+                    
+                    localStorage.setItem('currentBooking', JSON.stringify(booking));
+                    localStorage.setItem('selectedClass', selectedClass);
+                    localStorage.setItem('selectedSeats', JSON.stringify(selectedSeats)); // ✅ Store all seats
+                    localStorage.setItem('luggageWeight', luggageWeight);
+                    
+                    alert('✅ Booking confirmed! Proceeding to payment...');
+                    window.location.href = 'payment.html';
+                } else {
+                    const error = await res.json();
+                    alert('❌ Booking failed: ' + (error.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Booking error:', error);
+                alert('❌ Error processing booking. Please try again.');
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function formatTime(timeString) {
+            return timeString.substring(0, 5);
+        }
+    </script>
+</body>
+</html>

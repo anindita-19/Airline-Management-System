@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nimbus Airlines - Your Journey, Our Priority</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation with user-friendly links -->
+    <nav class="navbar">
+        <div class="container">
+            <h1>✈️ Nimbus Airlines</h1>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="search.html">Search Flights</a></li>
+                <li><a href="my-bookings.html">My Bookings</a></li>
+                <li><a href="login.html" id="loginBtn">Login</a></li>
+                <li><a href="admin.html">Admin</a></li>
+                <li><a href="#" id="logoutBtn" style="display:none">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Nimbus Airlines</h1>
+            <p>Book your flights with ease and comfort</p>
+            <div class="hero-buttons">
+                <a href="search.html" class="btn btn-primary btn-large">🔍 Search Flights</a>
+                <a href="login.html" class="btn btn-secondary btn-large" id="heroLoginBtn">👤 Login / Sign Up</a>
+                <a href="#" class="btn btn-danger btn-large" id="heroLogoutBtn" style="display:none">🚪 Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Features Section -->
+        <section class="features">
+            <h2>Why Choose Nimbus Airlines?</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Global Destinations</h3>
+                    <p>Fly to over 100 destinations worldwide</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Best Prices</h3>
+                    <p>Competitive rates and special offers</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Easy Booking</h3>
+                    <p>Simple 3-step booking process</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💺</div>
+                    <h3>Choose Your Seat</h3>
+                    <p>Visual seat selection for your comfort</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <h2>Quick Actions</h2>
+            <div class="action-cards">
+                <a href="search.html" class="action-card">
+                    <div class="action-icon">✈️</div>
+                    <h3>Book a Flight</h3>
+                    <p>Search and book flights</p>
+                </a>
+                <a href="my-bookings.html" class="action-card">
+                    <div class="action-icon">📋</div>
+                    <h3>My Bookings</h3>
+                    <p>View your bookings</p>
+                </a>
+                <a href="profile.html" class="action-card">
+                    <div class="action-icon">👤</div>
+                    <h3>My Profile</h3>
+                    <p>Update profile & photo</p>
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <div id="pageMessage" class="container"></div>
+
+    <footer>
+        <p>&copy; 2025 Nimbus Airlines. All rights reserved.</p>
+    </footer>
+
+    <script src="js/script.js"></script>
+    <script>
+        // ✅ FIXED: Persistent session management
+        function updateNavbar() {
+            const passenger = JSON.parse(localStorage.getItem('passenger'));
+            const admin = JSON.parse(localStorage.getItem('admin'));
+            const loginBtn = document.getElementById('loginBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+            const heroLoginBtn = document.getElementById('heroLoginBtn');
+            const heroLogoutBtn = document.getElementById('heroLogoutBtn');
+
+            if (passenger) {
+                // User is logged in
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (logoutBtn) {
+                    logoutBtn.style.display = 'inline';
+                    logoutBtn.textContent = `Logout (${passenger.firstName})`;
+                }
+                if (heroLoginBtn) heroLoginBtn.style.display = 'none';
+                if (heroLogoutBtn) {
+                    heroLogoutBtn.style.display = 'inline-block';
+                    heroLogoutBtn.textContent = `🚪 Logout (${passenger.firstName})`;
+                }
+            } else if (admin) {
+                // Admin is logged in
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (logoutBtn) {
+                    logoutBtn.style.display = 'inline';
+                    logoutBtn.textContent = `Logout (Admin)`;
+                }
+                if (heroLoginBtn) heroLoginBtn.style.display = 'none';
+                if (heroLogoutBtn) {
+                    heroLogoutBtn.style.display = 'inline-block';
+                    heroLogoutBtn.textContent = '🚪 Logout (Admin)';
+                }
+            } else {
+                // No one logged in
+                if (loginBtn) loginBtn.style.display = 'inline';
+                if (logoutBtn) logoutBtn.style.display = 'none';
+                if (heroLoginBtn) heroLoginBtn.style.display = 'inline-block';
+                if (heroLogoutBtn) heroLogoutBtn.style.display = 'none';
+            }
+
+            // ✅ FIXED: Attach logout handlers
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', e => {
+                    e.preventDefault();
+                    clearAllSessions();
+                    window.location.reload();
+                });
+            }
+            if (heroLogoutBtn) {
+                heroLogoutBtn.addEventListener('click', e => {
+                    e.preventDefault();
+                    clearAllSessions();
+                    window.location.reload();
+                });
+            }
+        }
+
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateNavbar();
+        });
+
+        function showPageMessage(msg, type='error') {
+            const msgDiv = document.getElementById('pageMessage');
+            if (!msgDiv) return;
+            msgDiv.innerHTML = `<p class="${type}">${msg}</p>`;
+            setTimeout(() => { msgDiv.innerHTML = ''; }, 5000);
+        }
+    </script>
+</body>
+</html>

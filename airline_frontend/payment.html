@@ -1,0 +1,314 @@
+<!-- ============================================ -->
+<!-- FILE LOCATION: airline-frontend/payment.html -->
+<!-- UPDATED: Multi-Seat Display Support -->
+<!-- ============================================ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Nimbus Airlines</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>✈️ Nimbus Airlines</h1>
+            <ul class="nav-links">
+                <li><a href="search.html">Search</a></li>
+                <li><a href="#" id="logoutBtn">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h2>💳 Complete Payment</h2>
+        
+        <div id="bookingSummary" class="booking-summary"></div>
+        
+        <form id="paymentForm" class="booking-step" style="max-width: 600px; margin: 0 auto;">
+            <h3>Select Payment Method</h3>
+            
+            <div class="form-group">
+                <label>Payment Method *</label>
+                <select id="paymentMethod" required>
+                    <option value="">Select Payment Method</option>
+                    <option value="Card">Credit/Debit Card</option>
+                    <option value="UPI">UPI</option>
+                    <option value="NetBanking">Net Banking</option>
+                </select>
+            </div>
+            
+            <!-- Card Details -->
+            <div id="cardDetails" style="display:none;">
+                <h4 style="color: #667eea; margin-top: 20px;">💳 Card Details</h4>
+                <div class="form-group">
+                    <label>Card Number *</label>
+                    <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" 
+                           maxlength="19" pattern="[0-9 ]*">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Expiry Date (MM/YY) *</label>
+                        <input type="text" id="expiry" placeholder="12/25" 
+                               maxlength="5" pattern="[0-9/]*">
+                    </div>
+                    <div class="form-group">
+                        <label>CVV *</label>
+                        <input type="password" id="cvv" placeholder="123" 
+                               maxlength="3" pattern="[0-9]*">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Cardholder Name *</label>
+                    <input type="text" id="cardholderName" placeholder="JOHN DOE">
+                </div>
+            </div>
+            
+            <!-- UPI Details -->
+            <div id="upiDetails" style="display:none;">
+                <h4 style="color: #667eea; margin-top: 20px;">📱 UPI Details</h4>
+                <div class="form-group">
+                    <label>UPI ID *</label>
+                    <input type="text" id="upiId" placeholder="yourname@paytm">
+                    <small style="color: #666;">Enter your UPI ID (e.g., 9876543210@paytm, user@oksbi)</small>
+                </div>
+            </div>
+            
+            <!-- Net Banking Details -->
+            <div id="netBankingDetails" style="display:none;">
+                <h4 style="color: #667eea; margin-top: 20px;">🏦 Net Banking</h4>
+                <div class="form-group">
+                    <label>Select Bank *</label>
+                    <select id="bankName">
+                        <option value="">Choose Your Bank</option>
+                        <option value="SBI">State Bank of India</option>
+                        <option value="HDFC">HDFC Bank</option>
+                        <option value="ICICI">ICICI Bank</option>
+                        <option value="AXIS">Axis Bank</option>
+                        <option value="PNB">Punjab National Bank</option>
+                        <option value="BOB">Bank of Baroda</option>
+                        <option value="KOTAK">Kotak Mahindra Bank</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-success" style="width: 100%; margin-top: 20px; font-size: 18px;">
+                💰 Pay Now
+            </button>
+        </form>
+        
+        <div id="message"></div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        checkAuth();
+        let booking = null;
+        let flight2 = null;
+        
+        async function loadBookingSummary() {
+            booking = JSON.parse(localStorage.getItem('currentBooking'));
+            if (!booking) {
+                alert('No booking found. Redirecting...');
+                window.location.href = 'search.html';
+                return;
+            }
+            
+            const flight = booking.flight;
+            
+            const flightClass = localStorage.getItem('selectedClass') || booking.flightClass || 'ECONOMY';
+            const luggageWeight = parseFloat(localStorage.getItem('luggageWeight') || booking.luggageWeight || 0);
+            
+            // ✅ NEW: Get all seat selections
+            let seatDisplay = '';
+            const selectedSeatsJson = localStorage.getItem('selectedSeats');
+            
+            if (selectedSeatsJson) {
+                try {
+                    const selectedSeats = JSON.parse(selectedSeatsJson);
+                    seatDisplay = Object.entries(selectedSeats)
+                        .map(([key, seat], index) => `<strong>Flight ${index + 1}:</strong> ${seat}`)
+                        .join(', ');
+                } catch (e) {
+                    console.error('Error parsing seats:', e);
+                    seatDisplay = localStorage.getItem('selectedSeat') || 'Will be assigned';
+                }
+            } else {
+                seatDisplay = localStorage.getItem('selectedSeat') || 'Will be assigned';
+            }
+            
+            const isConnecting = booking.isConnecting || false;
+            
+            if (isConnecting && booking.connectingFlightId) {
+                try {
+                    const res = await fetch(`http://localhost:8080/api/flights/${booking.connectingFlightId}`);
+                    if (res.ok) {
+                        flight2 = await res.json();
+                    }
+                } catch (e) {
+                    console.error('Error loading connecting flight:', e);
+                }
+            }
+            
+            let summaryHTML = `
+                <h3>📋 Booking Summary</h3>
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-top: 15px;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #667eea;">
+                        <p style="margin: 10px 0;"><strong>Booking ID:</strong> <span style="color: #667eea; font-size: 20px;">#${booking.id}</span></p>
+                        <p style="margin: 10px 0;"><strong>Class:</strong> <span style="color: #856404; font-weight: bold; font-size: 18px;">${flightClass}</span></p>
+                        <p style="margin: 10px 0;"><strong>Seat${isConnecting ? 's' : ''}:</strong> <span style="color: #667eea; font-weight: bold; font-size: 16px;">${seatDisplay}</span></p>
+                        <p style="margin: 10px 0;"><strong>Luggage:</strong> <span style="font-weight: bold;">${luggageWeight}kg</span></p>
+                    </div>
+                    
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                        <h4 style="color: #667eea; margin-top: 0;">✈️ Flight 1</h4>
+                        <p style="margin: 8px 0;"><strong>Flight:</strong> ${flight.flightNumber} - ${flight.airline}</p>
+                        <p style="margin: 8px 0;"><strong>Route:</strong> ${flight.source} → ${flight.destination}</p>
+                        <p style="margin: 8px 0;"><strong>Date:</strong> ${new Date(flight.departureDate).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'})}</p>
+                        <p style="margin: 8px 0;"><strong>Time:</strong> ${flight.departureTime.substring(0,5)} - ${flight.arrivalTime.substring(0,5)}</p>
+                    </div>`;
+            
+            if (isConnecting && flight2) {
+                summaryHTML += `
+                    <div style="background: #fff3cd; padding: 10px; text-align: center; border-radius: 5px; margin: 10px 0; font-weight: bold;">
+                        🔄 Connecting Flight
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px; margin-bottom: 15px;">
+                        <h4 style="color: #667eea; margin-top: 0;">✈️ Flight 2</h4>
+                        <p style="margin: 8px 0;"><strong>Flight:</strong> ${flight2.flightNumber} - ${flight2.airline}</p>
+                        <p style="margin: 8px 0;"><strong>Route:</strong> ${flight2.source} → ${flight2.destination}</p>
+                        <p style="margin: 8px 0;"><strong>Date:</strong> ${new Date(flight2.departureDate).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'})}</p>
+                        <p style="margin: 8px 0;"><strong>Time:</strong> ${flight2.departureTime.substring(0,5)} - ${flight2.arrivalTime.substring(0,5)}</p>
+                    </div>
+                    <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                        <p style="margin: 0; color: #666;"><strong>Complete Route:</strong></p>
+                        <p style="margin: 5px 0; font-size: 18px; color: #667eea; font-weight: bold;">
+                            ${flight.source} → ${flight.destination} → ${flight2.destination}
+                        </p>
+                    </div>`;
+            }
+            
+            summaryHTML += `
+                    <div style="background: #e7f3ff; padding: 20px; border-radius: 8px; margin-top: 20px;">
+                        <p style="font-size: 24px; color: #28a745; margin: 0; text-align: center;">
+                            <strong>Total Amount: ₹${booking.totalAmount.toFixed(2)}</strong>
+                        </p>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('bookingSummary').innerHTML = summaryHTML;
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBookingSummary();
+            
+            const cardNumberInput = document.getElementById('cardNumber');
+            if (cardNumberInput) {
+                cardNumberInput.addEventListener('input', (e) => {
+                    let value = e.target.value.replace(/\s/g, '');
+                    let formattedValue = value.match(/.{1,4}/g)?.join(' ') || value;
+                    e.target.value = formattedValue;
+                });
+            }
+            
+            const expiryInput = document.getElementById('expiry');
+            if (expiryInput) {
+                expiryInput.addEventListener('input', (e) => {
+                    let value = e.target.value.replace(/\//g, '');
+                    if (value.length >= 2) {
+                        e.target.value = value.slice(0, 2) + '/' + value.slice(2, 4);
+                    }
+                });
+            }
+        });
+        
+        document.getElementById('paymentMethod').addEventListener('change', (e) => {
+            const cardDetails = document.getElementById('cardDetails');
+            const upiDetails = document.getElementById('upiDetails');
+            const netBankingDetails = document.getElementById('netBankingDetails');
+            
+            cardDetails.style.display = 'none';
+            upiDetails.style.display = 'none';
+            netBankingDetails.style.display = 'none';
+            
+            document.querySelectorAll('#cardDetails input, #upiDetails input, #netBankingDetails select')
+                .forEach(input => input.removeAttribute('required'));
+            
+            if (e.target.value === 'Card') {
+                cardDetails.style.display = 'block';
+                document.getElementById('cardNumber').setAttribute('required', 'required');
+                document.getElementById('expiry').setAttribute('required', 'required');
+                document.getElementById('cvv').setAttribute('required', 'required');
+                document.getElementById('cardholderName').setAttribute('required', 'required');
+            } else if (e.target.value === 'UPI') {
+                upiDetails.style.display = 'block';
+                document.getElementById('upiId').setAttribute('required', 'required');
+            } else if (e.target.value === 'NetBanking') {
+                netBankingDetails.style.display = 'block';
+                document.getElementById('bankName').setAttribute('required', 'required');
+            }
+        });
+        
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            
+            if (!paymentMethod) {
+                showMessage('❌ Please select a payment method', 'error');
+                return;
+            }
+            
+            if (paymentMethod === 'Card') {
+                const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                const expiry = document.getElementById('expiry').value;
+                const cvv = document.getElementById('cvv').value;
+                const cardholderName = document.getElementById('cardholderName').value;
+                
+                if (cardNumber.length < 13 || cardNumber.length > 19) {
+                    showMessage('❌ Invalid card number', 'error');
+                    return;
+                }
+                if (!expiry.match(/^\d{2}\/\d{2}$/)) {
+                    showMessage('❌ Invalid expiry date. Use MM/YY format', 'error');
+                    return;
+                }
+                if (cvv.length !== 3) {
+                    showMessage('❌ CVV must be 3 digits', 'error');
+                    return;
+                }
+                if (!cardholderName.trim()) {
+                    showMessage('❌ Please enter cardholder name', 'error');
+                    return;
+                }
+            } else if (paymentMethod === 'UPI') {
+                const upiId = document.getElementById('upiId').value;
+                if (!upiId.includes('@')) {
+                    showMessage('❌ Invalid UPI ID. Must contain @', 'error');
+                    return;
+                }
+            } else if (paymentMethod === 'NetBanking') {
+                const bankName = document.getElementById('bankName').value;
+                if (!bankName) {
+                    showMessage('❌ Please select a bank', 'error');
+                    return;
+                }
+            }
+            
+            showMessage('⏳ Processing payment...', 'success');
+            
+            setTimeout(() => {
+                showMessage('✅ Payment successful! Redirecting to ticket...', 'success');
+                
+                localStorage.setItem('paymentMethod', paymentMethod);
+                
+                setTimeout(() => {
+                    window.location.href = `ticket.html?bookingId=${booking.id}`;
+                }, 1500);
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
