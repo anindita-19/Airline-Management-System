@@ -1,0 +1,262 @@
+# ============================================
+# .gitignore for Nimbus Airlines Project
+# Location: ROOT of your project (same level as airline-backend/ and airline-frontend/)
+# ============================================
+
+# ===========================
+# Java / Spring Boot Backend
+# ===========================
+
+# Compiled class files
+*.class
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+airline-backend/target/
+airline-backend/pom.xml.tag
+airline-backend/pom.xml.releaseBackup
+airline-backend/pom.xml.versionsBackup
+airline-backend/pom.xml.next
+airline-backend/release.properties
+airline-backend/dependency-reduced-pom.xml
+airline-backend/buildNumber.properties
+airline-backend/.mvn/timing.properties
+airline-backend/.mvn/wrapper/maven-wrapper.jar
+
+# Gradle (if you switch to Gradle)
+airline-backend/.gradle/
+airline-backend/build/
+airline-backend/gradle/
+airline-backend/gradlew
+airline-backend/gradlew.bat
+
+# Spring Boot
+airline-backend/.springBeans
+airline-backend/spring-boot-*.log
+
+# IntelliJ IDEA
+airline-backend/.idea/
+airline-backend/*.iws
+airline-backend/*.iml
+airline-backend/*.ipr
+airline-backend/out/
+
+# Eclipse
+airline-backend/.apt_generated
+airline-backend/.classpath
+airline-backend/.factorypath
+airline-backend/.project
+airline-backend/.settings/
+airline-backend/.springBeans
+airline-backend/.sts4-cache
+airline-backend/bin/
+
+# NetBeans
+airline-backend/nbproject/private/
+airline-backend/build/
+airline-backend/nbbuild/
+airline-backend/dist/
+airline-backend/nbdist/
+airline-backend/.nb-gradle/
+
+# VS Code
+airline-backend/.vscode/
+airline-backend/.code-workspace
+
+# Logs
+airline-backend/*.log
+airline-backend/logs/
+airline-backend/spring.log
+
+# Temporary files
+airline-backend/*.tmp
+airline-backend/*.temp
+airline-backend/*.swp
+airline-backend/*.swo
+airline-backend/*~
+airline-backend/.DS_Store
+
+# ===========================
+# Frontend
+# ===========================
+
+# Node modules (if you add npm later)
+airline-frontend/node_modules/
+airline-frontend/package-lock.json
+airline-frontend/yarn.lock
+
+# IDE files
+airline-frontend/.vscode/
+airline-frontend/.idea/
+
+# OS files
+airline-frontend/.DS_Store
+airline-frontend/Thumbs.db
+airline-frontend/Desktop.ini
+
+# Temporary files
+airline-frontend/*.tmp
+airline-frontend/*.temp
+airline-frontend/*.log
+
+# Build outputs (if you add build tools)
+airline-frontend/dist/
+airline-frontend/build/
+
+# ===========================
+# Database
+# ===========================
+
+# Don't ignore the SQL dump (we want to keep it for setup)
+# database/airline.sql  # Keep this commented - we WANT to track this
+
+# But ignore database backups
+database/*.backup
+database/*.bak
+database/*_backup.sql
+database/local_*.sql
+
+# ===========================
+# Sensitive Information
+# ===========================
+
+# Application properties with sensitive data
+**/application-local.properties
+**/application-prod.properties
+**/.env
+**/.env.local
+**/.env.production
+
+# API keys and secrets
+**/secrets.properties
+**/credentials.json
+**/keystore.jks
+
+# ===========================
+# System Files
+# ===========================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===========================
+# IDE & Editor Files
+# ===========================
+
+# JetBrains (IntelliJ IDEA, WebStorm)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+.idea_modules/
+
+# Eclipse
+.metadata/
+.recommenders/
+RemoteSystemsTempFiles/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ===========================
+# Documentation
+# ===========================
+
+# Generated documentation
+**/javadoc/
+**/apidoc/
+
+# ===========================
+# Testing
+# ===========================
+
+# Test reports
+**/test-results/
+**/coverage/
+**/.pytest_cache/
+
+# ===========================
+# Deployment
+# ===========================
+
+# Docker
+docker-compose.override.yml
+
+# Kubernetes
+k8s-local.yaml
+
+# ===========================
+# Miscellaneous
+# ===========================
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Archive files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.rar
+*.tar
+*.zip
+
+# Media files (if large)
+# Uncomment if you have large media files
+# *.mp4
+# *.mov
+# *.avi
+
+# ===========================
+# Keep These Files
+# ===========================
+
+# Explicitly include important files
+!.gitkeep
+!README.md
+!LICENSE
+!.gitignore
