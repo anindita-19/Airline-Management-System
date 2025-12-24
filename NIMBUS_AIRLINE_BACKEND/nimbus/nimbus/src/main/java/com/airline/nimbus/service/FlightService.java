@@ -1,6 +1,6 @@
 // ============================================
 // FILE LOCATION: airline-backend/src/main/java/com/airline/service/FlightService.java
-// REPLACE the existing FlightService.java with this
+// UPDATED: Added methods for upcoming flights
 // ============================================
 
 package com.airline.nimbus.service;
@@ -86,8 +86,19 @@ public class FlightService {
                 source, destination, date);
     }
 
-    // NEW: Search for connecting flights
-    // This finds flights like: DEL → BLR → MUM if no direct DEL → MUM exists
+    // NEW: Get upcoming flights (today and future)
+    public List<Flight> getUpcomingFlights() {
+        return flightRepository.findUpcomingFlights(LocalDate.now());
+    }
+
+    // NEW: Get flights for current month
+    public List<Flight> getCurrentMonthFlights() {
+        LocalDate today = LocalDate.now();
+        LocalDate endOfMonth = today.withDayOfMonth(today.lengthOfMonth());
+        return flightRepository.findFlightsBetweenDates(today, endOfMonth);
+    }
+
+    // Search for connecting flights
     public List<Map<String, Object>> searchConnectingFlights(
             String source, String destination, LocalDate date) {
 

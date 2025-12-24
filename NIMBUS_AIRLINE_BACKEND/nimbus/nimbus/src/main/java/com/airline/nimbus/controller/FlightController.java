@@ -1,6 +1,6 @@
 // ============================================
 // FILE LOCATION: airline-backend/src/main/java/com/airline/controller/FlightController.java
-// REPLACE the existing FlightController.java with this version
+// UPDATED: Added endpoints for upcoming flights
 // ============================================
 
 package com.airline.nimbus.controller;
@@ -27,6 +27,24 @@ public class FlightController {
         System.out.println("=== GET ALL FLIGHTS REQUEST ===");
         List<Flight> flights = flightService.getAllFlights();
         System.out.println("✅ Returning " + flights.size() + " flights");
+        return ResponseEntity.ok(flights);
+    }
+
+    // NEW: Get upcoming flights (today and future)
+    @GetMapping("/upcoming")
+    public ResponseEntity<List<Flight>> getUpcomingFlights() {
+        System.out.println("=== GET UPCOMING FLIGHTS ===");
+        List<Flight> flights = flightService.getUpcomingFlights();
+        System.out.println("✅ Found " + flights.size() + " upcoming flights");
+        return ResponseEntity.ok(flights);
+    }
+
+    // NEW: Get current month flights
+    @GetMapping("/current-month")
+    public ResponseEntity<List<Flight>> getCurrentMonthFlights() {
+        System.out.println("=== GET CURRENT MONTH FLIGHTS ===");
+        List<Flight> flights = flightService.getCurrentMonthFlights();
+        System.out.println("✅ Found " + flights.size() + " flights this month");
         return ResponseEntity.ok(flights);
     }
 
@@ -60,7 +78,7 @@ public class FlightController {
         }
     }
 
-    // NEW: Search for connecting flights
+    // Search for connecting flights
     @GetMapping("/search/connecting")
     public ResponseEntity<List<Map<String, Object>>> searchConnectingFlights(
             @RequestParam String source,

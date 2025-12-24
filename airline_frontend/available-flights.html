@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Flights - Nimbus Airlines</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .page-header {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .page-header h2 {
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+        
+        .page-header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .filter-bar {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .flights-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+        
+        .flight-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .flight-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        
+        .flight-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .flight-number {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2980b9;
+        }
+        
+        .airline {
+            color: #7f8c8d;
+            font-size: 0.95rem;
+        }
+        
+        .date-badge {
+            background: #3498db;
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .route-section {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: center;
+            margin: 1.5rem 0;
+        }
+        
+        .location {
+            text-align: center;
+        }
+        
+        .city-code {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            display: block;
+        }
+        
+        .time {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            margin-top: 0.3rem;
+            display: block;
+        }
+        
+        .route-arrow {
+            font-size: 2rem;
+            color: #3498db;
+            text-align: center;
+        }
+        
+        .flight-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .detail-item {
+            text-align: center;
+            padding: 0.8rem;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .detail-label {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+        
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .price-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        
+        .price-card {
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        
+        .price-card:hover {
+            border-color: #3498db;
+            background: #f8f9fa;
+        }
+        
+        .class-name {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        
+        .price-amount {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #27ae60;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .btn-book {
+            flex: 1;
+            padding: 0.8rem;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-book:hover {
+            background: #229954;
+        }
+        
+        .btn-autofill {
+            flex: 1;
+            padding: 0.8rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .btn-autofill:hover {
+            background: #2980b9;
+        }
+        
+        .no-flights {
+            text-align: center;
+            padding: 3rem;
+            color: #7f8c8d;
+        }
+        
+        .no-flights-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2rem;
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>✈️ Nimbus Airlines</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="available-flights.html">Available Flights</a></li>
+                <li><a href="search.html">Search Flights</a></li>
+                <li><a href="my-bookings.html">My Bookings</a></li>
+                <li><a href="#" id="logoutBtn">Logout</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h2>✈️ Available Flights</h2>
+            <p>Browse all upcoming flights and book your journey</p>
+        </div>
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>📍 From:</label>
+                <select id="filterSource">
+                    <option value="">All Cities</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>📍 To:</label>
+                <select id="filterDestination">
+                    <option value="">All Cities</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>📅 Date:</label>
+                <input type="date" id="filterDate" />
+            </div>
+            
+            <button onclick="applyFilters()" class="btn btn-primary">Apply Filters</button>
+            <button onclick="clearFilters()" class="btn btn-secondary">Clear</button>
+        </div>
+
+        <div id="loadingIndicator" class="loading">
+            <div>⏳ Loading flights...</div>
+        </div>
+
+        <div id="flightsContainer" class="flights-grid" style="display: none;">
+            <!-- Flights will be populated here -->
+        </div>
+
+        <div id="noFlightsMessage" class="no-flights" style="display: none;">
+            <div class="no-flights-icon">😔</div>
+            <h3>No flights available</h3>
+            <p>Please check back later or adjust your filters</p>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+    <script>
+        let allFlights = [];
+        let filteredFlights = [];
+
+        // Check authentication
+        const passenger = localStorage.getItem('passenger');
+        if (!passenger) {
+            alert('⚠️ Please login first to view flights');
+            window.location.href = 'login.html';
+        }
+        
+        checkAuth();
+
+        // Load flights on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadUpcomingFlights();
+            populateFilters();
+        });
+
+        async function loadUpcomingFlights() {
+            try {
+                const response = await fetch('http://localhost:8080/api/flights/upcoming');
+                allFlights = await response.json();
+                filteredFlights = [...allFlights];
+                
+                displayFlights(filteredFlights);
+            } catch (error) {
+                console.error('Error loading flights:', error);
+                document.getElementById('loadingIndicator').innerHTML = 
+                    '<div style="color: #e74c3c;">❌ Error loading flights. Please refresh.</div>';
+            }
+        }
+
+        function populateFilters() {
+            const sources = [...new Set(allFlights.map(f => f.source))].sort();
+            const destinations = [...new Set(allFlights.map(f => f.destination))].sort();
+            
+            const sourceSelect = document.getElementById('filterSource');
+            const destSelect = document.getElementById('filterDestination');
+            
+            sources.forEach(city => {
+                sourceSelect.innerHTML += `<option value="${city}">${city}</option>`;
+            });
+            
+            destinations.forEach(city => {
+                destSelect.innerHTML += `<option value="${city}">${city}</option>`;
+            });
+        }
+
+        function applyFilters() {
+            const source = document.getElementById('filterSource').value;
+            const destination = document.getElementById('filterDestination').value;
+            const date = document.getElementById('filterDate').value;
+            
+            filteredFlights = allFlights.filter(flight => {
+                let matches = true;
+                
+                if (source && flight.source !== source) matches = false;
+                if (destination && flight.destination !== destination) matches = false;
+                if (date && flight.departureDate !== date) matches = false;
+                
+                return matches;
+            });
+            
+            displayFlights(filteredFlights);
+        }
+
+        function clearFilters() {
+            document.getElementById('filterSource').value = '';
+            document.getElementById('filterDestination').value = '';
+            document.getElementById('filterDate').value = '';
+            
+            filteredFlights = [...allFlights];
+            displayFlights(filteredFlights);
+        }
+
+        function displayFlights(flights) {
+            const container = document.getElementById('flightsContainer');
+            const loading = document.getElementById('loadingIndicator');
+            const noFlights = document.getElementById('noFlightsMessage');
+            
+            loading.style.display = 'none';
+            
+            if (flights.length === 0) {
+                container.style.display = 'none';
+                noFlights.style.display = 'block';
+                return;
+            }
+            
+            noFlights.style.display = 'none';
+            container.style.display = 'grid';
+            
+            container.innerHTML = flights.map(flight => `
+                <div class="flight-card">
+                    <div class="flight-header">
+                        <div>
+                            <div class="flight-number">${flight.flightNumber}</div>
+                            <div class="airline">${flight.airline || 'Nimbus Airlines'}</div>
+                        </div>
+                        <div class="date-badge">
+                            📅 ${formatDate(flight.departureDate)}
+                        </div>
+                    </div>
+                    
+                    <div class="route-section">
+                        <div class="location">
+                            <span class="city-code">${flight.source}</span>
+                            <span class="time">${formatTime(flight.departureTime)}</span>
+                        </div>
+                        <div class="route-arrow">→</div>
+                        <div class="location">
+                            <span class="city-code">${flight.destination}</span>
+                            <span class="time">${formatTime(flight.arrivalTime)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flight-details">
+                        <div class="detail-item">
+                            <span class="detail-label">Available Seats</span>
+                            <span class="detail-value">💺 ${flight.availableSeats}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Total Seats</span>
+                            <span class="detail-value">${flight.totalSeats}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="price-section">
+                        <div class="price-card">
+                            <span class="class-name">Economy</span>
+                            <div class="price-amount">₹${flight.economyPrice}</div>
+                        </div>
+                        <div class="price-card">
+                            <span class="class-name">Business</span>
+                            <div class="price-amount">₹${flight.businessPrice}</div>
+                        </div>
+                        <div class="price-card">
+                            <span class="class-name">First Class</span>
+                            <div class="price-amount">₹${flight.firstClassPrice}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-autofill" onclick="autofillSearch('${flight.source}', '${flight.destination}', '${flight.departureDate}')">
+                            🔍 Search This Route
+                        </button>
+                        <button class="btn-book" onclick="bookFlight(${flight.id})">
+                            ✈️ Book Now
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-IN', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric'
+            });
+        }
+
+        function formatTime(timeString) {
+            return timeString.substring(0, 5); // HH:MM
+        }
+
+        function autofillSearch(source, destination, date) {
+            // Store in localStorage for search page
+            localStorage.setItem('searchSource', source);
+            localStorage.setItem('searchDestination', destination);
+            localStorage.setItem('searchDate', date);
+            
+            // Redirect to search page
+            window.location.href = 'search.html';
+        }
+
+        function bookFlight(flightId) {
+            localStorage.setItem('selectedFlight', flightId);
+            localStorage.setItem('isConnecting', 'false');
+            window.location.href = 'booking.html';
+        }
+    </script>
+</body>
+</html>

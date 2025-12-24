@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +12,9 @@
             <h1>✈️ Nimbus Airlines</h1>
             <ul class="nav-links">
                 <li><a href="index.html">Home</a></li>
-                <li><a href="search.html">Search</a></li>
+                <li><a href="available-flights.html">Available Flights</a></li>
+                <li><a href="search.html">Search Flights</a></li>
+                <li><a href="my-bookings.html">My Bookings</a></li>
                 <li><a href="#" id="logoutBtn">Logout</a></li>
             </ul>
         </div>
@@ -22,6 +22,14 @@
 
     <div class="container">
         <h2>Search Flights</h2>
+        
+        <div style="background: #e3f2fd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <p style="margin: 0; color: #1976d2;">
+                💡 <strong>Tip:</strong> Not sure where to fly? Check out our 
+                <a href="available-flights.html" style="color: #1976d2; text-decoration: underline;">Available Flights</a> 
+                page to browse all upcoming flights!
+            </p>
+        </div>
         
         <form id="searchForm" class="search-form">
             <div class="form-row">
@@ -56,6 +64,9 @@
         <!-- No Results Message -->
         <div id="noResults" style="display: none;">
             <p class="no-results">😔 No flights found for this route and date.</p>
+            <p style="text-align: center; margin-top: 1rem;">
+                <a href="available-flights.html" class="btn btn-secondary">Browse Available Flights</a>
+            </p>
         </div>
     </div>
 
@@ -72,6 +83,27 @@
         
         // Set minimum date to today
         document.getElementById('date').min = new Date().toISOString().split('T')[0];
+        
+        // ✅ NEW: Autofill from Available Flights page
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchSource = localStorage.getItem('searchSource');
+            const searchDestination = localStorage.getItem('searchDestination');
+            const searchDate = localStorage.getItem('searchDate');
+            
+            if (searchSource && searchDestination && searchDate) {
+                document.getElementById('source').value = searchSource;
+                document.getElementById('destination').value = searchDestination;
+                document.getElementById('date').value = searchDate;
+                
+                // Clear from localStorage
+                localStorage.removeItem('searchSource');
+                localStorage.removeItem('searchDestination');
+                localStorage.removeItem('searchDate');
+                
+                // Auto-submit the search
+                document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+            }
+        });
         
         document.getElementById('searchForm').addEventListener('submit', async (e) => {
             e.preventDefault();
