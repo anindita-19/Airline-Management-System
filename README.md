@@ -1,6 +1,6 @@
 # ✈️ Nimbus Airlines - Flight Booking Management System
 
-A comprehensive full-stack airline management system built with Spring Boot and vanilla JavaScript, featuring real-time seat selection, connecting flight bookings, and multi-class pricing.
+A comprehensive full-stack airline management system built with Spring Boot and vanilla JavaScript, featuring real-time seat selection, connecting flight bookings, multi-class pricing, and dynamic flight date management.
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -26,6 +26,8 @@ A comprehensive full-stack airline management system built with Spring Boot and 
 ### User Features
 - **🔐 User Authentication** - Secure login/signup with session management
 - **🔍 Smart Flight Search** - Search for direct and connecting flights
+- **📅 Browse Available Flights** - View all upcoming flights with advanced filters
+- **🔄 Auto-Date Management** - Flights automatically updated to current month/year
 - **💺 Visual Seat Selection** - Interactive seat map with real-time availability
 - **🎯 Multi-Class Booking** - Economy, Business, and First Class options
 - **🔄 Connecting Flights** - Book multi-leg journeys with layover validation (1-6 hours)
@@ -47,6 +49,9 @@ A comprehensive full-stack airline management system built with Spring Boot and 
 - **🪑 Dynamic Seat Allocation** - JSON-based multi-seat storage for connecting flights
 - **💵 Class-Based Pricing** - Automatic price calculation (Economy: 1x, Business: 2x, First: 3x)
 - **🔁 Seat Release on Cancellation** - Automatic seat availability restoration
+- **📆 Dynamic Date Updates** - SQL-based automatic flight date management on startup
+- **🔍 Smart Flight Filtering** - Filter by source, destination, and date
+- **🔗 Search Autofill** - Pre-populate search from browsed flights
 - **🌐 RESTful API** - Clean, well-documented endpoints
 - **📱 Responsive Design** - Mobile-friendly interface
 
@@ -84,7 +89,7 @@ nimbus-airlines/
 │   │   ├── controller/              # REST Controllers
 │   │   │   ├── AdminController.java
 │   │   │   ├── BookingController.java
-│   │   │   ├── FlightController.java
+│   │   │   ├── FlightController.java       # Updated: New endpoints
 │   │   │   ├── PassengerController.java
 │   │   │   ├── PaymentController.java
 │   │   │   ├── SeatController.java
@@ -101,7 +106,7 @@ nimbus-airlines/
 │   │   ├── repository/              # JPA Repositories
 │   │   │   ├── AdminRepository.java
 │   │   │   ├── BookingRepository.java
-│   │   │   ├── FlightRepository.java
+│   │   │   ├── FlightRepository.java       # Updated: Query methods
 │   │   │   ├── PassengerRepository.java
 │   │   │   ├── PaymentRepository.java
 │   │   │   └── SeatRepository.java
@@ -109,7 +114,7 @@ nimbus-airlines/
 │   │   ├── service/                 # Business Logic
 │   │   │   ├── AdminService.java
 │   │   │   ├── BookingService.java
-│   │   │   ├── FlightService.java
+│   │   │   ├── FlightService.java          # Updated: New methods
 │   │   │   ├── PassengerService.java
 │   │   │   ├── PaymentService.java
 │   │   │   ├── SeatService.java
@@ -121,7 +126,8 @@ nimbus-airlines/
 │   │   └── NimbusAirlinesApplication.java
 │   │
 │   ├── src/main/resources/
-│   │   └── application.properties
+│   │   ├── application.properties          # Updated: SQL init config
+│   │   └── data.sql                        # New: Auto-date update script
 │   │
 │   └── pom.xml                      # Maven Dependencies
 │
@@ -130,10 +136,11 @@ nimbus-airlines/
 │   │   └── style.css
 │   ├── js/
 │   │   └── script.js
-│   ├── index.html                   # Landing Page
+│   ├── index.html                   # Updated: New nav links
 │   ├── login.html                   # User Login
 │   ├── signup.html                  # User Registration
-│   ├── search.html                  # Flight Search
+│   ├── available-flights.html       # New: Browse flights page
+│   ├── search.html                  # Updated: Autofill support
 │   ├── booking.html                 # Booking Form
 │   ├── payment.html                 # Payment Gateway
 │   ├── ticket.html                  # Ticket Display
@@ -182,6 +189,10 @@ spring.datasource.password=YOUR_MYSQL_PASSWORD
 
 # Server Port
 server.port=8080
+
+# SQL Initialization (for auto-date updates)
+spring.sql.init.mode=always
+spring.jpa.defer-datasource-initialization=true
 ```
 
 ### Step 4: Build and Run Backend
@@ -198,6 +209,8 @@ mvn spring-boot:run
 ```
 
 The backend will start at `http://localhost:8080`
+
+**Note:** On startup, the system automatically updates flight dates to the current month/year.
 
 ### Step 5: Run Frontend
 ```bash
@@ -243,18 +256,26 @@ The backend is configured to accept requests from:
 
 Update `CorsConfig.java` to add more origins if needed.
 
+### Dynamic Date Management
+The system includes an automatic date update feature:
+- **On Startup**: Flights with past dates are updated to current month/year
+- **Day Preservation**: The day component (e.g., 12, 25) remains unchanged
+- **Edge Cases**: Handles invalid dates (e.g., Feb 30 → Feb 28/29)
+- **Configuration**: Set `spring.sql.init.mode=never` in production after initial deployment
+
 ## 🚀 Usage
 
 ### User Workflow
 1. **Register/Login** → Create account or login with existing credentials
-2. **Search Flights** → Enter source, destination, and date
-3. **Select Flight** → Choose from direct or connecting flights
-4. **Choose Class** → Economy, Business, or First Class
-5. **Select Seats** → Pick seats from interactive seat map
-6. **Enter Luggage** → Specify luggage weight (free limits apply)
-7. **Review Booking** → Check booking summary
-8. **Payment** → Complete payment via Card/UPI/Net Banking
-9. **Download Ticket** → Get PDF ticket with booking details
+2. **Browse Available Flights** → View all upcoming flights with filters (NEW!)
+3. **Search Flights** → Enter source, destination, and date OR use autofill from browsed flights
+4. **Select Flight** → Choose from direct or connecting flights
+5. **Choose Class** → Economy, Business, or First Class
+6. **Select Seats** → Pick seats from interactive seat map
+7. **Enter Luggage** → Specify luggage weight (free limits apply)
+8. **Review Booking** → Check booking summary
+9. **Payment** → Complete payment via Card/UPI/Net Banking
+10. **Download Ticket** → Get PDF ticket with booking details
 
 ### Admin Workflow
 1. **Login** → Access admin dashboard
@@ -276,6 +297,8 @@ POST /api/admin/login
 ```http
 GET    /api/flights
 GET    /api/flights/{id}
+GET    /api/flights/upcoming                                              # New: All future flights
+GET    /api/flights/current-month                                        # New: This month's flights
 GET    /api/flights/search?source=DEL&destination=MUM&date=2025-10-28
 GET    /api/flights/search/connecting?source=DEL&destination=HYD&date=2025-10-28
 POST   /api/flights
@@ -312,6 +335,27 @@ GET    /api/tickets/{bookingId}/download
 ```
 
 ### Example Request/Response
+
+**GET /api/flights/upcoming**
+```json
+[
+  {
+    "id": 27,
+    "flightNumber": "NB101",
+    "source": "DEL",
+    "destination": "MUM",
+    "departureDate": "2025-12-28",
+    "departureTime": "08:00:00",
+    "arrivalTime": "10:30:00",
+    "airline": "Nimbus Air",
+    "totalSeats": 190,
+    "availableSeats": 190,
+    "economyPrice": 5000.0,
+    "businessPrice": 10000.0,
+    "firstClassPrice": 15000.0
+  }
+]
+```
 
 **POST /api/bookings**
 ```json
@@ -385,7 +429,8 @@ GET    /api/tickets/{bookingId}/download
 
 ### User Interface
 - **Home Page** - Landing page with features
-- **Flight Search** - Direct and connecting flight results
+- **Available Flights** - Browse all upcoming flights with filters (NEW!)
+- **Flight Search** - Direct and connecting flight results with autofill
 - **Seat Selection** - Interactive seat map
 - **Booking Summary** - Detailed booking information
 - **Payment Gateway** - Multiple payment options
@@ -398,6 +443,36 @@ GET    /api/tickets/{bookingId}/download
 - **Passenger Management** - View passenger details
 
 ## 🔧 Key Features Implementation
+
+### Dynamic Flight Date Management
+```sql
+-- data.sql - Automatic date update on startup
+UPDATE flights
+SET departure_date = DATE_FORMAT(
+    CONCAT(YEAR(CURDATE()), '-', MONTH(CURDATE()), '-', DAY(departure_date)),
+    '%Y-%m-%d'
+)
+WHERE departure_date < CURDATE()
+   OR YEAR(departure_date) != YEAR(CURDATE())
+   OR MONTH(departure_date) != MONTH(CURDATE());
+```
+
+### Available Flights Browsing
+```javascript
+// FlightRepository.java - Query upcoming flights
+@Query("SELECT f FROM Flight f WHERE f.departureDate >= :today 
+        ORDER BY f.departureDate ASC, f.departureTime ASC")
+List<Flight> findUpcomingFlights(LocalDate today);
+```
+
+### Search Autofill Feature
+```javascript
+// available-flights.html → search.html
+// Users can click "Search This Route" to autofill search form
+localStorage.setItem('searchSource', source);
+localStorage.setItem('searchDestination', destination);
+localStorage.setItem('searchDate', date);
+```
 
 ### Multi-Seat Selection for Connecting Flights
 ```javascript
@@ -439,6 +514,25 @@ mysql -u root -p
 
 # Check credentials in application.properties
 # Ensure database 'airline_db' exists
+```
+
+### Flight Dates Not Updating
+```bash
+# Verify data.sql is in src/main/resources/
+# Check application.properties has:
+spring.sql.init.mode=always
+spring.jpa.defer-datasource-initialization=true
+
+# Check console logs for SQL execution errors
+```
+
+### Available Flights Page Shows No Data
+```bash
+# Test API endpoint directly
+curl http://localhost:8080/api/flights/upcoming
+
+# Ensure at least one flight has departure_date >= today
+# Check browser console for errors
 ```
 
 ### CORS Issues
