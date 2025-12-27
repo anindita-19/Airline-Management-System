@@ -2,11 +2,9 @@
 FROM maven:3.9.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy the nimbus project (where pom.xml and src are)
-COPY nimbus/pom.xml .
-COPY nimbus/src ./src
-COPY nimbus/.mvn ./.mvn
-COPY nimbus/mvnw .
+# Copy the nested nimbus project (the actual Spring Boot app)
+COPY nimbus/nimbus/pom.xml .
+COPY nimbus/nimbus/src ./src
 
 # Build the application
 RUN mvn clean package -DskipTests
