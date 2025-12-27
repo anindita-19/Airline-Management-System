@@ -61,7 +61,7 @@
     <footer>
         <p>&copy; 2025 Nimbus Airlines. All rights reserved.</p>
     </footer>
-
+    <script src="js/config.js"></script>
     <script src="js/script.js"></script>
     <script>
         checkAuth();
@@ -117,7 +117,7 @@
         }
 
         async function fetchFlight(flightId) {
-            const response = await fetch(`http://localhost:8080/api/flights/${flightId}`);
+            const response = await fetch(`${CONFIG.API_BASE_URL}/api/flights/${flightId}`);
             if (!response.ok) throw new Error('Flight not found');
             return await response.json();
         }
@@ -180,11 +180,11 @@
         // ✅ NEW: Load seats for all flight segments
         async function loadAllSeats() {
             try {
-                const res1 = await fetch(`http://localhost:8080/api/seats/flight/${flight1.id}/class/${selectedClass}`);
+                const res1 = await fetch(`${CONFIG.API_BASE_URL}/api/seats/flight/${flight1.id}/class/${selectedClass}`);
                 allSeats1 = await res1.json();
                 
                 if (isConnecting && flight2) {
-                    const res2 = await fetch(`http://localhost:8080/api/seats/flight/${flight2.id}/class/${selectedClass}`);
+                   const res2 = await fetch(`${CONFIG.API_BASE_URL}/api/seats/flight/${flight2.id}/class/${selectedClass}`);
                     allSeats2 = await res2.json();
                 }
             } catch (error) {
@@ -371,7 +371,7 @@
             console.log('Booking Data:', bookingData);
 
             try {
-                const res = await fetch('http://localhost:8080/api/bookings', {
+                const res = await fetch(CONFIG.API_BASE_URL + '/api/bookings',  {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(bookingData)

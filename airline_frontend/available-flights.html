@@ -307,7 +307,7 @@
             <p>Please check back later or adjust your filters</p>
         </div>
     </div>
-
+    <script src="js/config.js"></script>
     <script src="js/script.js"></script>
     <script>
         let allFlights = [];
@@ -330,7 +330,7 @@
 
         async function loadUpcomingFlights() {
             try {
-                const response = await fetch('http://localhost:8080/api/flights/upcoming');
+                const response = await fetch(CONFIG.API_BASE_URL + '/api/flights/upcoming');
                 allFlights = await response.json();
                 filteredFlights = [...allFlights];
                 

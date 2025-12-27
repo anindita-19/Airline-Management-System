@@ -4,8 +4,7 @@
 // ============================================
 
 // Base API URL
-const API_BASE_URL = 'http://localhost:8080/api';
-
+const API_BASE_URL = CONFIG.API_BASE_URL + '/api';
 // Helper function to display messages
 function showMessage(message, type) {
     const messageDiv = document.getElementById('message') || 

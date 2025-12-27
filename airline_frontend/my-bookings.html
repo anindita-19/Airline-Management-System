@@ -32,7 +32,7 @@
             <p class="no-results">You have no bookings yet. <a href="search.html">Book a flight now!</a></p>
         </div>
     </div>
-
+    <script src="js/config.js"></script>
     <script src="js/script.js"></script>
     <script>
         (function() {
@@ -51,7 +51,7 @@
             
             try {
                 const response = await fetch(
-                    `http://localhost:8080/api/bookings/passenger/${passenger.id}`
+                    `${CONFIG.API_BASE_URL}/api/bookings/passenger/${passenger.id}`
                 );
                 const bookings = await response.json();
                 
@@ -94,7 +94,7 @@
                 if (booking.isConnecting && booking.connectingFlightId) {
                     isConnecting = true;
                     try {
-                        const response = await fetch(`http://localhost:8080/api/flights/${booking.connectingFlightId}`);
+                        const response = await fetch(`${CONFIG.API_BASE_URL}/api/flights/${booking.connectingFlightId}`);
                         if (response.ok) {
                             flight2 = await response.json();
                             routeDisplay = `${booking.flight.source} → ${booking.flight.destination} → ${flight2.destination}`;
@@ -200,7 +200,7 @@
             
             try {
                 const response = await fetch(
-                    `http://localhost:8080/api/bookings/${bookingId}/cancel`,
+                    `${CONFIG.API_BASE_URL}/api/bookings/${bookingId}/cancel`,
                     { method: 'PUT' }
                 );
                 

@@ -100,7 +100,7 @@
         
         <div id="message"></div>
     </div>
-
+    <script src="js/config.js"></script>
     <script src="js/script.js"></script>
     <script>
         checkAuth();
@@ -142,7 +142,7 @@
             
             if (isConnecting && booking.connectingFlightId) {
                 try {
-                    const res = await fetch(`http://localhost:8080/api/flights/${booking.connectingFlightId}`);
+                    const res = await fetch(`${CONFIG.API_BASE_URL}/api/flights/${booking.connectingFlightId}`);
                     if (res.ok) {
                         flight2 = await res.json();
                     }
