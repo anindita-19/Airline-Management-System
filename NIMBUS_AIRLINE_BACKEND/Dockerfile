@@ -21,18 +21,3 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
-```
-
-### Step 3: Verify Your Settings
-
-Make sure these Render settings are **exactly** like this:
-
-- **Root Directory**: `NIMBUS_AIRLINE_BACKEND`
-- **Docker Build Context Directory**: `NIMBUS_AIRLINE_BACKEND/.` (or just `.`)
-- **Dockerfile Path**: `Dockerfile`
-
-### Step 4: Add Build Filters (Optional but Recommended)
-
-Scroll down to **Build Filters** and add this to **Included Paths**:
-```
-NIMBUS_AIRLINE_BACKEND/**
