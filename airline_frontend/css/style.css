@@ -1,5 +1,3 @@
-
-
 * {
     margin: 0;
     padding: 0;
@@ -33,6 +31,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .navbar h1 {
@@ -44,6 +43,7 @@ body {
     display: flex;
     list-style: none;
     gap: 25px;
+    flex-wrap: wrap;
 }
 
 .nav-links a {
@@ -69,6 +69,7 @@ body {
     color: white;
     margin-bottom: 40px;
     border-radius: 10px;
+    padding: 20px;
 }
 
 .hero-content h1 {
@@ -143,6 +144,12 @@ body {
 .form-row {
     display: flex;
     gap: 15px;
+    flex-wrap: wrap;
+}
+
+.form-row .form-group {
+    flex: 1;
+    min-width: 200px;
 }
 
 /* Search Form */
@@ -173,6 +180,8 @@ body {
     display: flex;
     justify-content: space-between;
     margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .flight-badge {
@@ -206,10 +215,14 @@ body {
     justify-content: space-between;
     align-items: center;
     margin: 20px 0;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .city-time {
     text-align: center;
+    flex: 1;
+    min-width: 80px;
 }
 
 .city {
@@ -227,7 +240,7 @@ body {
 }
 
 .flight-path {
-    flex: 1;
+    flex: 0 0 auto;
     text-align: center;
 }
 
@@ -243,10 +256,12 @@ body {
     margin-top: 15px;
     padding-top: 15px;
     border-top: 1px solid #eee;
+    flex-wrap: wrap;
 }
 
 .class-option {
     flex: 1;
+    min-width: 120px;
     text-align: center;
     padding: 10px;
     background: #f8f9fa;
@@ -296,6 +311,8 @@ body {
     border-radius: 5px;
     margin-top: 15px;
     font-size: 18px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .connecting-total .price {
@@ -380,6 +397,7 @@ body {
     gap: 20px;
     margin-bottom: 20px;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .legend-seat {
@@ -408,6 +426,7 @@ body {
     padding: 20px;
     background: #f8f9fa;
     border-radius: 10px;
+    overflow-x: auto;
 }
 
 .seat-row {
@@ -493,6 +512,8 @@ body {
     justify-content: space-between;
     padding: 10px 0;
     border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .summary-row.total {
@@ -543,6 +564,7 @@ body {
     display: flex;
     gap: 15px;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 /* Messages */
@@ -596,6 +618,8 @@ body {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    overflow-x: auto;
+    display: block;
 }
 
 .admin-table thead {
@@ -608,6 +632,7 @@ body {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #ddd;
+    white-space: nowrap;
 }
 
 .admin-table tbody tr:hover {
@@ -635,10 +660,13 @@ footer {
     box-shadow: 0 5px 20px rgba(0,0,0,0.1);
     display: flex;
     gap: 40px;
+    flex-wrap: wrap;
 }
 
 .photo-section {
     text-align: center;
+    flex: 1;
+    min-width: 250px;
 }
 
 .photo-preview {
@@ -647,7 +675,7 @@ footer {
     border-radius: 50%;
     overflow: hidden;
     border: 4px solid #667eea;
-    margin-bottom: 20px;
+    margin: 0 auto 20px;
 }
 
 .photo-preview img {
@@ -667,7 +695,8 @@ footer {
 }
 
 .profile-details {
-    flex: 1;
+    flex: 2;
+    min-width: 300px;
 }
 
 /* My Bookings */
@@ -692,6 +721,8 @@ footer {
     margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 2px solid #f0f0f0;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .booking-content {
@@ -703,6 +734,8 @@ footer {
     justify-content: space-between;
     padding: 10px 0;
     border-bottom: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .booking-total {
@@ -719,6 +752,7 @@ footer {
     display: flex;
     gap: 10px;
     margin-top: 20px;
+    flex-wrap: wrap;
 }
 
 .btn-danger {
@@ -741,6 +775,7 @@ footer {
     gap: 20px;
     justify-content: center;
     margin-top: 30px;
+    flex-wrap: wrap;
 }
 
 /* Quick Actions */
@@ -792,9 +827,7 @@ footer {
     margin-bottom: 15px;
 }
 
-/* ============================================ */
 /* Features Section Cards Styling */
-/* ============================================ */
 .features {
     padding: 60px 20px;
     text-align: center;
@@ -803,7 +836,7 @@ footer {
 .features h2 {
     font-size: 2.5rem;
     margin-bottom: 40px;
-    color: #fff; /* keep it visible on gradient background */
+    color: #fff;
 }
 
 /* Grid Layout for Feature Cards */
@@ -817,7 +850,7 @@ footer {
 
 /* Feature Cards */
 .feature-card {
-    background: rgba(255, 255, 255, 0.05); /* slightly lighter box */
+    background: rgba(255, 255, 255, 0.05);
     border-radius: 15px;
     padding: 30px 20px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
@@ -827,7 +860,7 @@ footer {
 .feature-card:hover {
     transform: translateY(-10px);
     box-shadow: 0 12px 25px rgba(0, 0, 0, 0.25);
-    background: rgba(255, 255, 255, 0.1); /* slightly brighter on hover */
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .feature-icon {
@@ -839,7 +872,7 @@ footer {
 
 .feature-card:hover .feature-icon {
     transform: rotate(15deg);
-    color: #ffeb3b; /* subtle highlight on hover */
+    color: #ffeb3b;
 }
 
 .feature-card h3 {
@@ -853,16 +886,6 @@ footer {
     color: rgba(255, 255, 255, 0.8);
     line-height: 1.5;
 }
-
-/* Responsive tweak */
-@media (max-width: 768px) {
-    .feature-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-
-
 
 /* Status Badges */
 .status-badge {
@@ -887,32 +910,6 @@ footer {
 .nav-links a.active {
     color: #667eea;
     font-weight: bold;
-}
-
-/* Responsive Updates */
-@media (max-width: 768px) {
-    .profile-card {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .hero-buttons {
-        flex-direction: column;
-        gap: 15px;
-    }
-    
-    .booking-row {
-        flex-direction: column;
-        gap: 5px;
-    }
-    
-    .booking-actions {
-        flex-direction: column;
-    }
-    
-    .action-cards {
-        grid-template-columns: 1fr;
-    }
 }
 
 .admin-tabs {
@@ -942,9 +939,296 @@ footer {
 }
 
 .tab-content {
-    display: none; /* hide all by default */
-}
-.tab-content.active {
-    display: block; /* show only active */
+    display: none;
 }
 
+.tab-content.active {
+    display: block;
+}
+
+/* ============================================ */
+/* RESPONSIVE MEDIA QUERIES - NEW ADDITIONS */
+/* ============================================ */
+
+/* Tablets (768px and below) */
+@media (max-width: 768px) {
+    /* Container padding adjustment */
+    .container {
+        padding: 15px;
+    }
+    
+    /* Navbar adjustments */
+    .navbar .container {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .navbar h1 {
+        font-size: 20px;
+    }
+    
+    .nav-links {
+        gap: 15px;
+        font-size: 14px;
+    }
+    
+    /* Hero section */
+    .hero {
+        min-height: 300px;
+        padding: 30px 15px;
+    }
+    
+    .hero-content h1 {
+        font-size: 32px;
+    }
+    
+    .hero-content p {
+        font-size: 16px;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .hero-buttons .btn {
+        width: 100%;
+    }
+    
+    /* Form adjustments */
+    .form-row {
+        flex-direction: column;
+    }
+    
+    .form-row .form-group {
+        min-width: 100%;
+    }
+    
+    /* Flight cards */
+    .flight-header {
+        flex-direction: column;
+    }
+    
+    .route-info {
+        flex-direction: column;
+    }
+    
+    .city {
+        font-size: 20px;
+    }
+    
+    .price-classes {
+        flex-direction: column;
+    }
+    
+    /* Class selection */
+    .class-selection {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Booking summary */
+    .summary-row {
+        flex-direction: column;
+        text-align: left;
+    }
+    
+    /* Ticket container */
+    .ticket-container {
+        padding: 20px;
+    }
+    
+    /* Profile card */
+    .profile-card {
+        flex-direction: column;
+        padding: 20px;
+    }
+    
+    /* Booking actions */
+    .booking-actions {
+        flex-direction: column;
+    }
+    
+    .booking-actions .btn {
+        width: 100%;
+    }
+    
+    /* Admin table wrapper */
+    .admin-table {
+        font-size: 12px;
+    }
+    
+    .admin-table th,
+    .admin-table td {
+        padding: 8px;
+    }
+    
+    /* Auth container */
+    .auth-container {
+        padding: 20px;
+        margin: 20px auto;
+    }
+    
+    /* Features section */
+    .features h2 {
+        font-size: 1.8rem;
+    }
+    
+    .feature-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    /* Action cards */
+    .action-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Buttons */
+    .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+    
+    .btn-large {
+        padding: 12px 30px;
+        font-size: 16px;
+    }
+    
+    /* Seat map */
+    .seat-map {
+        padding: 10px;
+    }
+    
+    .seat {
+        width: 35px;
+        height: 35px;
+        font-size: 12px;
+    }
+    
+    .row-number {
+        width: 25px;
+        font-size: 12px;
+    }
+}
+
+/* Mobile phones (480px and below) */
+@media (max-width: 480px) {
+    /* Further container reduction */
+    .container {
+        padding: 10px;
+    }
+    
+    /* Navbar */
+    .navbar h1 {
+        font-size: 18px;
+    }
+    
+    .nav-links {
+        gap: 10px;
+        font-size: 12px;
+        justify-content: center;
+    }
+    
+    /* Hero */
+    .hero {
+        min-height: 250px;
+        padding: 20px 10px;
+    }
+    
+    .hero-content h1 {
+        font-size: 24px;
+    }
+    
+    .hero-content p {
+        font-size: 14px;
+    }
+    
+    /* Cards and sections */
+    .flight-card,
+    .booking-step,
+    .booking-card {
+        padding: 15px;
+    }
+    
+    .search-form {
+        padding: 20px;
+    }
+    
+    /* Typography */
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    h3 {
+        font-size: 1.2rem;
+    }
+    
+    /* City codes */
+    .city {
+        font-size: 18px;
+    }
+    
+    .time {
+        font-size: 14px;
+    }
+    
+    /* Class cards */
+    .class-icon {
+        font-size: 30px;
+    }
+    
+    /* Seat selection */
+    .seat {
+        width: 30px;
+        height: 30px;
+        font-size: 11px;
+    }
+    
+    .seat-row {
+        gap: 5px;
+    }
+    
+    /* Booking summary totals */
+    .summary-row.total {
+        font-size: 16px;
+    }
+    
+    .booking-total {
+        font-size: 18px;
+    }
+    
+    /* Ticket actions */
+    .ticket-actions {
+        flex-direction: column;
+    }
+    
+    .ticket-actions .btn {
+        width: 100%;
+    }
+    
+    /* Profile photo */
+    .photo-preview {
+        width: 150px;
+        height: 150px;
+    }
+    
+    /* Features */
+    .features {
+        padding: 40px 10px;
+    }
+    
+    .features h2 {
+        font-size: 1.5rem;
+    }
+    
+    .feature-card {
+        padding: 20px 15px;
+    }
+    
+    .feature-icon {
+        font-size: 2rem;
+    }
+    
+    /* Action icon */
+    .action-icon {
+        font-size: 36px;

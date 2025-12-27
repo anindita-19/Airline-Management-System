@@ -36,11 +36,14 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            flex: 1;
+            min-width: 200px;
         }
         
         .filter-group label {
             font-weight: 600;
             color: #2c3e50;
+            white-space: nowrap;
         }
         
         .filter-group select,
@@ -49,6 +52,8 @@
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 1rem;
+            flex: 1;
+            min-width: 120px;
         }
         
         .flights-grid {
@@ -76,6 +81,8 @@
             margin-bottom: 1rem;
             padding-bottom: 1rem;
             border-bottom: 2px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
         
         .flight-number {
@@ -194,6 +201,7 @@
             display: flex;
             gap: 1rem;
             margin-top: 1rem;
+            flex-wrap: wrap;
         }
         
         .btn-book {
@@ -207,6 +215,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s;
+            min-width: 140px;
         }
         
         .btn-book:hover {
@@ -224,6 +233,7 @@
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s;
+            min-width: 140px;
         }
         
         .btn-autofill:hover {
@@ -246,6 +256,197 @@
             padding: 3rem;
             font-size: 1.2rem;
             color: #3498db;
+        }
+
+        /* ============================================ */
+        /* RESPONSIVE STYLES FOR AVAILABLE FLIGHTS */
+        /* ============================================ */
+
+        /* Tablets (768px and below) */
+        @media (max-width: 768px) {
+            .page-header h2 {
+                font-size: 1.5rem;
+            }
+
+            .page-header p {
+                font-size: 1rem;
+            }
+
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+                min-width: 100%;
+            }
+
+            .filter-group label {
+                margin-bottom: 0.3rem;
+            }
+
+            .filter-group select,
+            .filter-group input {
+                width: 100%;
+            }
+
+            .flight-card {
+                padding: 1rem;
+            }
+
+            .flight-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .flight-number {
+                font-size: 1.1rem;
+            }
+
+            .route-section {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .route-arrow {
+                transform: rotate(90deg);
+                font-size: 1.5rem;
+            }
+
+            .city-code {
+                font-size: 1.5rem;
+            }
+
+            .time {
+                font-size: 1rem;
+            }
+
+            .flight-details {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .price-section {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .btn-book,
+            .btn-autofill {
+                width: 100%;
+            }
+        }
+
+        /* Mobile phones (480px and below) */
+        @media (max-width: 480px) {
+            .page-header {
+                margin: 1rem 0;
+            }
+
+            .page-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .page-header p {
+                font-size: 0.9rem;
+            }
+
+            .filter-bar {
+                padding: 0.8rem;
+            }
+
+            .filter-group select,
+            .filter-group input {
+                font-size: 0.9rem;
+                padding: 0.4rem;
+            }
+
+            .flight-card {
+                padding: 0.8rem;
+                border-radius: 8px;
+            }
+
+            .flight-number {
+                font-size: 1rem;
+            }
+
+            .airline {
+                font-size: 0.85rem;
+            }
+
+            .date-badge {
+                font-size: 0.8rem;
+                padding: 0.3rem 0.6rem;
+            }
+
+            .city-code {
+                font-size: 1.3rem;
+            }
+
+            .time {
+                font-size: 0.9rem;
+            }
+
+            .route-arrow {
+                font-size: 1.2rem;
+            }
+
+            .flight-details {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+            }
+
+            .detail-item {
+                padding: 0.6rem;
+            }
+
+            .detail-label {
+                font-size: 0.8rem;
+            }
+
+            .detail-value {
+                font-size: 1rem;
+            }
+
+            .price-section {
+                gap: 0.5rem;
+            }
+
+            .price-card {
+                padding: 0.8rem;
+            }
+
+            .class-name {
+                font-size: 0.8rem;
+            }
+
+            .price-amount {
+                font-size: 1.2rem;
+            }
+
+            .btn-book,
+            .btn-autofill {
+                padding: 0.7rem;
+                font-size: 0.9rem;
+            }
+
+            .no-flights {
+                padding: 2rem 1rem;
+            }
+
+            .no-flights-icon {
+                font-size: 3rem;
+            }
+
+            .loading {
+                padding: 2rem;
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
@@ -271,14 +472,14 @@
 
         <div class="filter-bar">
             <div class="filter-group">
-                <label>📍 From:</label>
+                <label>🔍 From:</label>
                 <select id="filterSource">
                     <option value="">All Cities</option>
                 </select>
             </div>
             
             <div class="filter-group">
-                <label>📍 To:</label>
+                <label>🔍 To:</label>
                 <select id="filterDestination">
                     <option value="">All Cities</option>
                 </select>
