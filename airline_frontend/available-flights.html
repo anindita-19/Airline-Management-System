@@ -310,6 +310,28 @@
                 flex-direction: column;
             }
         }
+
+        @media (max-width: 480px) {
+            .page-header {
+                margin: 1rem 0;
+            }
+
+            .page-header h2 {
+                font-size: 1.3rem;
+            }
+
+            .flight-card {
+                padding: 0.8rem;
+            }
+
+            .city-code {
+                font-size: 1.3rem;
+            }
+
+            .price-amount {
+                font-size: 1.2rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -375,8 +397,11 @@
             <p>Please check back later or adjust your filters</p>
         </div>
     </div>
-    <script src="js/config.js"></script>
+    
     <script>
+        // Configuration - Use your Render backend URL
+        const API_BASE_URL = 'https://airline-backend-i4wj.onrender.com';
+        
         let allFlights = [];
         let filteredFlights = [];
         let isLoggedIn = false;
@@ -407,16 +432,29 @@
 
         async function loadUpcomingFlights() {
             try {
-                const response = await fetch('http://localhost:8080/api/flights/upcoming');
+                console.log('🔄 Fetching flights from:', API_BASE_URL + '/api/flights/upcoming');
+                
+                const response = await fetch(API_BASE_URL + '/api/flights/upcoming');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 allFlights = await response.json();
                 filteredFlights = [...allFlights];
+                
+                console.log('✅ Loaded flights:', allFlights.length);
                 
                 populateFilters();
                 displayFlights(filteredFlights);
             } catch (error) {
-                console.error('Error loading flights:', error);
+                console.error('❌ Error loading flights:', error);
                 document.getElementById('loadingIndicator').innerHTML = 
-                    '<div style="color: #e74c3c;">❌ Error loading flights. Please refresh.</div>';
+                    `<div style="color: #e74c3c;">
+                        ❌ Error loading flights: ${error.message}<br>
+                        Please check if the backend is running at:<br>
+                        <a href="${API_BASE_URL}/api/flights/upcoming" target="_blank">${API_BASE_URL}/api/flights/upcoming</a>
+                    </div>`;
             }
         }
 
@@ -426,6 +464,10 @@
             
             const sourceSelect = document.getElementById('filterSource');
             const destSelect = document.getElementById('filterDestination');
+            
+            // Clear existing options (except "All Cities")
+            sourceSelect.innerHTML = '<option value="">All Cities</option>';
+            destSelect.innerHTML = '<option value="">All Cities</option>';
             
             sources.forEach(city => {
                 sourceSelect.innerHTML += `<option value="${city}">${city}</option>`;
@@ -441,6 +483,8 @@
             const destination = document.getElementById('filterDestination').value;
             const date = document.getElementById('filterDate').value;
             
+            console.log('🔍 Applying filters:', { source, destination, date });
+            
             filteredFlights = allFlights.filter(flight => {
                 let matches = true;
                 
@@ -451,6 +495,7 @@
                 return matches;
             });
             
+            console.log('✅ Filtered flights:', filteredFlights.length);
             displayFlights(filteredFlights);
         }
 
