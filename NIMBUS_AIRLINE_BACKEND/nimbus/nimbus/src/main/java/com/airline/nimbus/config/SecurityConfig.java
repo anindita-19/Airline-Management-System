@@ -1,6 +1,6 @@
 // ============================================
 // FILE LOCATION: airline-backend/src/main/java/com/airline/nimbus/config/SecurityConfig.java
-// PURPOSE: Configure which endpoints are public vs protected
+// FIXED: Added authentication endpoints to public access
 // ============================================
 
 package com.airline.nimbus.config;
@@ -26,18 +26,27 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ✅ PUBLIC ENDPOINTS - No login required
                         .requestMatchers(
-                                "/health",                          // Health check for UptimeRobot
-                                "/ping",                            // Alternative health check
-                                "/api/flights/search",              // Direct flight search
-                                "/api/flights/search/connecting",   // Connecting flight search
-                                "/api/flights/upcoming",            // Browse upcoming flights
-                                "/api/flights/current-month",       // Current month flights
-                                "/api/flights",                     // View all flights (read-only)
-                                "/api/flights/{id}"                 // View single flight details
+                                // Health checks
+                                "/health",
+                                "/ping",
+
+                                // 🔑 AUTHENTICATION ENDPOINTS (CRITICAL!)
+                                "/api/passengers/login",
+                                "/api/passengers/signup",
+                                "/api/admin/login",
+                                "/api/admin/create",
+
+                                // Flight search (read-only)
+                                "/api/flights/search",
+                                "/api/flights/search/connecting",
+                                "/api/flights/upcoming",
+                                "/api/flights/current-month",
+                                "/api/flights",
+                                "/api/flights/**"
                         ).permitAll()
 
                         // 🔒 PROTECTED ENDPOINTS - Login required
-                        .anyRequest().authenticated()           // Everything else needs auth
+                        .anyRequest().authenticated()
                 )
 
                 // Use stateless sessions (REST API pattern)
@@ -48,12 +57,18 @@ public class SecurityConfig {
                 // Disable default login page (we have custom frontend)
                 .formLogin(form -> form.disable())
 
+                // Disable HTTP Basic auth popup
+                .httpBasic(basic -> basic.disable())
+
                 // Allow cross-origin requests (already configured in CorsConfig)
                 .cors(cors -> {});
 
         System.out.println("✅ Security configured:");
-        System.out.println("   - Public: /health, /api/flights/search, /api/flights/upcoming");
-        System.out.println("   - Protected: All other endpoints");
+        System.out.println("   PUBLIC: /health, /ping");
+        System.out.println("   PUBLIC: /api/passengers/login, /api/passengers/signup");
+        System.out.println("   PUBLIC: /api/admin/login, /api/admin/create");
+        System.out.println("   PUBLIC: /api/flights/** (all flight endpoints)");
+        System.out.println("   PROTECTED: All other endpoints (bookings, payments, etc.)");
 
         return http.build();
     }
