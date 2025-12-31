@@ -1,6 +1,6 @@
 // ============================================
-// FILE LOCATION: airline-backend/src/main/java/com/airline/service/FlightService.java
-// UPDATED: Added methods for upcoming flights
+// FILE LOCATION: airline-backend/src/main/java/com/airline/nimbus/service/FlightService.java
+// UPDATED: Added updateAvailableSeats method
 // ============================================
 
 package com.airline.nimbus.service;
@@ -10,11 +10,8 @@ import com.airline.nimbus.repository.FlightRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
-import java.time.Duration;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
+import java.time.LocalTime;
+import java.util.*;
 
 @Service
 public class FlightService {
@@ -26,48 +23,164 @@ public class FlightService {
         return flightRepository.findAll();
     }
 
+    // ✅ UPDATED: Get upcoming flights (today + next 30 days)
+    public List<Flight> getUpcomingFlights() {
+        System.out.println("📅 Getting flights from today to next 30 days");
+        return flightRepository.findUpcomingFlights();
+    }
+
+    // ✅ UPDATED: Renamed from getCurrentMonthFlights to getNext30DaysFlights
+    public List<Flight> getCurrentMonthFlights() {
+        // Keep method name for backward compatibility
+        // But internally use 30-day rolling window
+        System.out.println("📅 Getting flights for next 30 days (rolling window)");
+        return flightRepository.findUpcomingFlights();
+    }
+
+    // ✅ NEW: Get flights for custom number of days
+    public List<Flight> getFlightsForNextDays(int days) {
+        System.out.println("📅 Getting flights for next " + days + " days");
+        return flightRepository.findFlightsForNextDays(days);
+    }
+
     public Flight getFlightById(Long id) {
         return flightRepository.findById(id).orElse(null);
     }
 
+    public List<Flight> searchFlights(String source, String destination, LocalDate date) {
+        System.out.println("🔍 Searching direct flights: " + source + " → " + destination + " on " + date);
+        return flightRepository.findBySourceAndDestinationAndDepartureDate(
+                source, destination, date);
+    }
+
+    public List<Map<String, Object>> searchConnectingFlights(
+            String source, String destination, LocalDate date) {
+
+        System.out.println("🔍 Searching connecting flights: " + source + " → " + destination);
+
+        List<Map<String, Object>> connectingOptions = new ArrayList<>();
+
+        // Find all flights from source on the given date
+        List<Flight> firstLegs = flightRepository.findBySource(source).stream()
+                .filter(f -> f.getDepartureDate().equals(date))
+                .toList();
+
+        System.out.println("   Found " + firstLegs.size() + " potential first legs");
+
+        // For each first leg, find connecting flights
+        for (Flight firstFlight : firstLegs) {
+            String layoverCity = firstFlight.getDestination();
+
+            // Skip if this is already a direct flight
+            if (layoverCity.equals(destination)) {
+                continue;
+            }
+
+            // Find flights from layover city to final destination
+            List<Flight> secondLegs = flightRepository
+                    .findBySourceAndDestinationAndDepartureDate(
+                            layoverCity, destination, date);
+
+            for (Flight secondFlight : secondLegs) {
+                // Check if there's enough time for connection (1-8 hours)
+                if (isValidConnection(firstFlight, secondFlight)) {
+                    long layoverMinutes = calculateLayoverMinutes(firstFlight, secondFlight);
+                    double layoverHours = Math.round(layoverMinutes / 60.0 * 10.0) / 10.0;
+
+                    Map<String, Object> connection = new HashMap<>();
+                    connection.put("flight1", firstFlight);
+                    connection.put("flight2", secondFlight);
+                    connection.put("layoverCity", layoverCity);
+                    connection.put("layoverHours", layoverHours);
+                    connection.put("totalPrice",
+                            firstFlight.getEconomyPrice() + secondFlight.getEconomyPrice());
+
+                    connectingOptions.add(connection);
+                }
+            }
+        }
+
+        System.out.println("   ✅ Found " + connectingOptions.size() + " connecting options");
+        return connectingOptions;
+    }
+
+    private boolean isValidConnection(Flight first, Flight second) {
+        LocalTime firstArrival = first.getArrivalTime();
+        LocalTime secondDeparture = second.getDepartureTime();
+
+        long layoverMinutes = calculateLayoverMinutes(first, second);
+
+        // Valid connection: 60 minutes to 8 hours
+        return layoverMinutes >= 60 && layoverMinutes <= 480;
+    }
+
+    private long calculateLayoverMinutes(Flight first, Flight second) {
+        LocalTime firstArrival = first.getArrivalTime();
+        LocalTime secondDeparture = second.getDepartureTime();
+
+        int arrivalMinutes = firstArrival.getHour() * 60 + firstArrival.getMinute();
+        int departureMinutes = secondDeparture.getHour() * 60 + secondDeparture.getMinute();
+
+        long layover = departureMinutes - arrivalMinutes;
+
+        // Handle overnight connections
+        if (layover < 0) {
+            layover += 24 * 60;
+        }
+
+        return layover;
+    }
+
+    // ✅ NEW: Update available seats after booking
+    public boolean updateAvailableSeats(Long flightId, Integer seatsBooked) {
+        System.out.println("💺 Updating seats for flight ID: " + flightId);
+        System.out.println("   Seats to book: " + seatsBooked);
+
+        try {
+            // Fetch the flight
+            Flight flight = flightRepository.findById(flightId).orElse(null);
+
+            if (flight == null) {
+                System.out.println("❌ Flight not found");
+                return false;
+            }
+
+            // Check if enough seats are available
+            if (flight.getAvailableSeats() < seatsBooked) {
+                System.out.println("❌ Not enough seats available");
+                System.out.println("   Available: " + flight.getAvailableSeats());
+                System.out.println("   Requested: " + seatsBooked);
+                return false;
+            }
+
+            // Update available seats
+            int newAvailableSeats = flight.getAvailableSeats() - seatsBooked;
+            flight.setAvailableSeats(newAvailableSeats);
+
+            // Save the updated flight
+            flightRepository.save(flight);
+
+            System.out.println("✅ Seats updated successfully");
+            System.out.println("   Previous: " + (newAvailableSeats + seatsBooked));
+            System.out.println("   Current: " + newAvailableSeats);
+
+            return true;
+
+        } catch (Exception e) {
+            System.out.println("❌ Error updating seats: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public Flight createFlight(Flight flight) {
-        flight.setAvailableSeats(flight.getTotalSeats());
-        // Set default class seats if not provided
-        if (flight.getEconomySeats() == null) {
-            flight.setEconomySeats((int)(flight.getTotalSeats() * 0.75));
-        }
-        if (flight.getBusinessSeats() == null) {
-            flight.setBusinessSeats((int)(flight.getTotalSeats() * 0.20));
-        }
-        if (flight.getFirstClassSeats() == null) {
-            flight.setFirstClassSeats((int)(flight.getTotalSeats() * 0.05));
-        }
-        // Set default prices if not provided
-        if (flight.getEconomyPrice() == null) {
-            flight.setEconomyPrice(flight.getPrice());
-        }
-        if (flight.getBusinessPrice() == null) {
-            flight.setBusinessPrice(flight.getPrice() * 2);
-        }
-        if (flight.getFirstClassPrice() == null) {
-            flight.setFirstClassPrice(flight.getPrice() * 3);
-        }
         return flightRepository.save(flight);
     }
 
-    public Flight updateFlight(Long id, Flight flightDetails) {
-        Flight flight = flightRepository.findById(id).orElse(null);
-        if (flight != null) {
-            flight.setFlightNumber(flightDetails.getFlightNumber());
-            flight.setSource(flightDetails.getSource());
-            flight.setDestination(flightDetails.getDestination());
-            flight.setDepartureDate(flightDetails.getDepartureDate());
-            flight.setDepartureTime(flightDetails.getDepartureTime());
-            flight.setArrivalTime(flightDetails.getArrivalTime());
-            flight.setPrice(flightDetails.getPrice());
-            flight.setTotalSeats(flightDetails.getTotalSeats());
-            flight.setAirline(flightDetails.getAirline());
-            return flightRepository.save(flight);
+    public Flight updateFlight(Long id, Flight updatedFlight) {
+        if (flightRepository.existsById(id)) {
+            updatedFlight.setId(id);
+            return flightRepository.save(updatedFlight);
         }
         return null;
     }
@@ -75,85 +188,6 @@ public class FlightService {
     public boolean deleteFlight(Long id) {
         if (flightRepository.existsById(id)) {
             flightRepository.deleteById(id);
-            return true;
-        }
-        return false;
-    }
-
-    // Search for direct flights
-    public List<Flight> searchFlights(String source, String destination, LocalDate date) {
-        return flightRepository.findBySourceAndDestinationAndDepartureDate(
-                source, destination, date);
-    }
-
-    // NEW: Get upcoming flights (today and future)
-    public List<Flight> getUpcomingFlights() {
-        return flightRepository.findUpcomingFlights(LocalDate.now());
-    }
-
-    // NEW: Get flights for current month
-    public List<Flight> getCurrentMonthFlights() {
-        LocalDate today = LocalDate.now();
-        LocalDate endOfMonth = today.withDayOfMonth(today.lengthOfMonth());
-        return flightRepository.findFlightsBetweenDates(today, endOfMonth);
-    }
-
-    // Search for connecting flights
-    public List<Map<String, Object>> searchConnectingFlights(
-            String source, String destination, LocalDate date) {
-
-        List<Map<String, Object>> connectingFlights = new ArrayList<>();
-
-        // First, get all flights from source on that date
-        List<Flight> firstLeg = flightRepository.findBySource(source);
-
-        for (Flight flight1 : firstLeg) {
-            // Skip if this goes directly to destination (that's not connecting)
-            if (flight1.getDestination().equals(destination)) {
-                continue;
-            }
-
-            // Skip if not on the requested date
-            if (!flight1.getDepartureDate().equals(date)) {
-                continue;
-            }
-
-            // Find flights from flight1's destination to final destination
-            List<Flight> secondLeg = flightRepository.findBySourceAndDestinationAndDepartureDate(
-                    flight1.getDestination(), destination, date);
-
-            for (Flight flight2 : secondLeg) {
-                // Check if there's enough layover time (1-6 hours)
-                Duration layover = Duration.between(
-                        flight1.getArrivalTime(),
-                        flight2.getDepartureTime()
-                );
-
-                long layoverHours = layover.toHours();
-
-                // Only include if layover is reasonable (1-6 hours)
-                if (layoverHours >= 1 && layoverHours <= 6) {
-                    Map<String, Object> connection = new HashMap<>();
-                    connection.put("flight1", flight1);
-                    connection.put("flight2", flight2);
-                    connection.put("layoverHours", layoverHours);
-                    connection.put("totalPrice",
-                            flight1.getEconomyPrice() + flight2.getEconomyPrice());
-                    connection.put("layoverCity", flight1.getDestination());
-                    connectingFlights.add(connection);
-                }
-            }
-        }
-
-        return connectingFlights;
-    }
-
-    // Update available seats (for booking)
-    public boolean updateAvailableSeats(Long flightId, int seatsBooked) {
-        Flight flight = flightRepository.findById(flightId).orElse(null);
-        if (flight != null && flight.getAvailableSeats() >= seatsBooked) {
-            flight.setAvailableSeats(flight.getAvailableSeats() - seatsBooked);
-            flightRepository.save(flight);
             return true;
         }
         return false;

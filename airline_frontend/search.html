@@ -14,8 +14,8 @@
                 <li><a href="index.html">Home</a></li>
                 <li><a href="available-flights.html">Available Flights</a></li>
                 <li><a href="search.html">Search Flights</a></li>
-                <li><a href="my-bookings.html">My Bookings</a></li>
-                <li><a href="#" id="logoutBtn">Logout</a></li>
+                <!-- Show different menu based on login status -->
+                <li id="authMenu"></li>
             </ul>
         </div>
     </nav>
@@ -63,7 +63,7 @@
 
         <!-- No Results Message -->
         <div id="noResults" style="display: none;">
-            <p class="no-results">😔 No flights found for this route and date.</p>
+            <p class="no-results">😕 No flights found for this route and date.</p>
             <p style="text-align: center; margin-top: 1rem;">
                 <a href="available-flights.html" class="btn btn-secondary">Browse Available Flights</a>
             </p>
@@ -72,19 +72,35 @@
     <script src="js/config.js"></script>
     <script src="js/script.js"></script>
     <script>
-        // CHECK AUTH - PREVENT ACCESS WITHOUT LOGIN
-        const passenger = localStorage.getItem('passenger');
-        if (!passenger) {
-            alert('⚠️ Please login first to search flights');
-            window.location.href = 'login.html';
-        }
+        // ✅ UPDATED: No login required for search page
+        // But show different UI based on login status
         
-        checkAuth();
+        const passenger = localStorage.getItem('passenger');
+        const authMenu = document.getElementById('authMenu');
+        
+        if (passenger) {
+            // User is logged in - show "My Bookings" and "Logout"
+            authMenu.innerHTML = `
+                <a href="my-bookings.html">My Bookings</a>
+                <a href="#" id="logoutBtn">Logout</a>
+            `;
+            
+            document.getElementById('logoutBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                logout();
+            });
+        } else {
+            // User not logged in - show "Login" and "Sign Up"
+            authMenu.innerHTML = `
+                <a href="login.html">Login</a>
+                <a href="signup.html">Sign Up</a>
+            `;
+        }
         
         // Set minimum date to today
         document.getElementById('date').min = new Date().toISOString().split('T')[0];
         
-        // ✅ NEW: Autofill from Available Flights page
+        // Autofill from Available Flights page
         document.addEventListener('DOMContentLoaded', () => {
             const searchSource = localStorage.getItem('searchSource');
             const searchDestination = localStorage.getItem('searchDestination');
@@ -291,13 +307,30 @@
             });
         }
         
+        // ✅ UPDATED: Check login before booking
         function bookDirectFlight(flightId) {
+            const passenger = localStorage.getItem('passenger');
+            
+            if (!passenger) {
+                alert('🔒 Please login first to book flights');
+                window.location.href = 'login.html';
+                return;
+            }
+            
             localStorage.setItem('selectedFlight', flightId);
             localStorage.setItem('isConnecting', 'false');
             window.location.href = 'booking.html';
         }
         
         function bookConnectingFlight(flight1Id, flight2Id) {
+            const passenger = localStorage.getItem('passenger');
+            
+            if (!passenger) {
+                alert('🔒 Please login first to book flights');
+                window.location.href = 'login.html';
+                return;
+            }
+            
             localStorage.setItem('selectedFlight', flight1Id);
             localStorage.setItem('connectingFlightId', flight2Id);
             localStorage.setItem('isConnecting', 'true');
