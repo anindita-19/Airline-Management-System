@@ -42,7 +42,8 @@ public class SecurityConfig {
                                 "/api/flights/upcoming",
                                 "/api/flights/current-month",
                                 "/api/flights",
-                                "/api/flights/**"
+                                "/api/flights/**",
+                                  "/api/seats/**"
                         ).permitAll()
 
                         // 🔒 PROTECTED ENDPOINTS - Login required
