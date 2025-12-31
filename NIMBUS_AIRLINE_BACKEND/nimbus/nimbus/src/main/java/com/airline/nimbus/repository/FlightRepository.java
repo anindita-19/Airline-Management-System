@@ -1,6 +1,6 @@
 // ============================================
-// FILE LOCATION: airline-backend/src/main/java/com/airline/repository/FlightRepository.java
-// UPDATED: Changed to rolling 30-day date logic
+// FILE LOCATION: airline-backend/src/main/java/com/airline/nimbus/repository/FlightRepository.java
+// FIXED: Changed from JPQL to Native SQL queries for date arithmetic
 // ============================================
 
 package com.airline.nimbus.repository;
@@ -25,25 +25,27 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
 
     Flight findByFlightNumber(String flightNumber);
 
-    // ✅ UPDATED: Get upcoming flights (today + next 30 days)
-    // This works across month and year boundaries
-    @Query("SELECT f FROM Flight f WHERE f.departureDate >= CURRENT_DATE " +
-            "AND f.departureDate <= DATE_ADD(CURRENT_DATE, 30) " +
-            "ORDER BY f.departureDate ASC, f.departureTime ASC")
+    // ✅ FIXED: Using native SQL query instead of JPQL for date arithmetic
+    @Query(value = "SELECT * FROM flights f WHERE f.departure_date >= CURDATE() " +
+            "AND f.departure_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY) " +
+            "ORDER BY f.departure_date ASC, f.departure_time ASC",
+            nativeQuery = true)
     List<Flight> findUpcomingFlights();
 
-    // ✅ UPDATED: Get flights within rolling date range
-    @Query("SELECT f FROM Flight f WHERE f.departureDate >= :startDate " +
-            "AND f.departureDate <= :endDate " +
-            "ORDER BY f.departureDate ASC, f.departureTime ASC")
+    // ✅ FIXED: Using native SQL query with parameters
+    @Query(value = "SELECT * FROM flights f WHERE f.departure_date >= :startDate " +
+            "AND f.departure_date <= :endDate " +
+            "ORDER BY f.departure_date ASC, f.departure_time ASC",
+            nativeQuery = true)
     List<Flight> findFlightsBetweenDates(
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate
     );
 
-    // ✅ NEW: Get flights for next N days (configurable)
-    @Query("SELECT f FROM Flight f WHERE f.departureDate >= CURRENT_DATE " +
-            "AND f.departureDate <= DATE_ADD(CURRENT_DATE, :days) " +
-            "ORDER BY f.departureDate ASC, f.departureTime ASC")
+    // ✅ FIXED: Using native SQL query with dynamic days parameter
+    @Query(value = "SELECT * FROM flights f WHERE f.departure_date >= CURDATE() " +
+            "AND f.departure_date <= DATE_ADD(CURDATE(), INTERVAL :days DAY) " +
+            "ORDER BY f.departure_date ASC, f.departure_time ASC",
+            nativeQuery = true)
     List<Flight> findFlightsForNextDays(@Param("days") int days);
 }
