@@ -1,11 +1,12 @@
 # ✈️ Nimbus Airlines - Flight Booking Management System
 
-A comprehensive full-stack airline management system built with Spring Boot and vanilla JavaScript, featuring real-time seat selection, connecting flight bookings, multi-class pricing, and dynamic flight date management.
+A comprehensive full-stack airline management system built with Spring Boot and vanilla JavaScript, featuring real-time seat selection, connecting flight bookings, multi-class pricing, public flight search, and rolling 30-day flight availability with automatic health monitoring.
 
 [![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-blue.svg)](https://www.mysql.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-success.svg)](https://nimbus-airlines.netlify.app)
 
 ## 📋 Table of Contents
 
@@ -14,6 +15,7 @@ A comprehensive full-stack airline management system built with Spring Boot and 
 - [Architecture](#-architecture)
 - [Installation](#-installation)
 - [Configuration](#-configuration)
+- [Deployment](#-deployment)
 - [Usage](#-usage)
 - [API Documentation](#-api-documentation)
 - [Database Schema](#-database-schema)
@@ -24,13 +26,14 @@ A comprehensive full-stack airline management system built with Spring Boot and 
 ## 🌟 Features
 
 ### User Features
-- **🔐 User Authentication** - Secure login/signup with session management
+- **🌐 Public Flight Search** - Browse and search flights without login (NEW!)
+- **🔐 Secure Authentication** - Login/signup required only for booking actions
 - **🔍 Smart Flight Search** - Search for direct and connecting flights
-- **📅 Browse Available Flights** - View all upcoming flights with advanced filters
-- **🔄 Auto-Date Management** - Flights automatically updated to current month/year
+- **📅 Rolling 30-Day Availability** - Always see flights for the next 30 days (NEW!)
+- **📊 Browse Available Flights** - View all upcoming flights with advanced filters
 - **💺 Visual Seat Selection** - Interactive seat map with real-time availability
 - **🎯 Multi-Class Booking** - Economy, Business, and First Class options
-- **🔄 Connecting Flights** - Book multi-leg journeys with layover validation (1-6 hours)
+- **🔄 Connecting Flights** - Book multi-leg journeys with layover validation (1-8 hours)
 - **🧳 Luggage Management** - Automatic calculation based on class (Economy: 20kg, Business: 30kg, First: 40kg)
 - **💳 Payment Gateway** - Multiple payment methods (Card, UPI, Net Banking)
 - **🎫 PDF Ticket Generation** - Download printable tickets with QR codes
@@ -44,22 +47,28 @@ A comprehensive full-stack airline management system built with Spring Boot and 
 - **📋 Booking Overview** - Monitor all bookings with status filters
 - **💰 Revenue Tracking** - Real-time revenue calculations
 
-### Technical Features
-- **🔒 Session-Based Authentication** - Mutual exclusion between user/admin sessions
+### Technical Features (NEW!)
+- **🔓 Public Flight Search** - No authentication required for browsing flights
+- **🔒 Protected Actions** - Login required for booking, payments, profile management
+- **📅 Rolling Date Logic** - 30-day window instead of month-based (prevents end-of-month issues)
+- **🏥 Health Monitoring** - Lightweight `/health` endpoint for uptime monitoring
+- **⚡ Cold Start Prevention** - UptimeRobot integration to keep backend active
+- **🔐 Spring Security Integration** - Granular endpoint protection
 - **🪑 Dynamic Seat Allocation** - JSON-based multi-seat storage for connecting flights
 - **💵 Class-Based Pricing** - Automatic price calculation (Economy: 1x, Business: 2x, First: 3x)
 - **🔁 Seat Release on Cancellation** - Automatic seat availability restoration
-- **📆 Dynamic Date Updates** - SQL-based automatic flight date management on startup
 - **🔍 Smart Flight Filtering** - Filter by source, destination, and date
 - **🔗 Search Autofill** - Pre-populate search from browsed flights
-- **🌐 RESTful API** - Clean, well-documented endpoints
+- **🌐 RESTful API** - Clean, well-documented endpoints with CORS support
 - **📱 Responsive Design** - Mobile-friendly interface
+- **☁️ Cloud Deployment** - Render (Backend) + Netlify (Frontend) + Railway (Database)
 
 ## 🛠️ Tech Stack
 
 ### Backend
 - **Java 21** - Core programming language
 - **Spring Boot 3.5.6** - Application framework
+- **Spring Security** - Authentication and authorization (NEW!)
 - **Spring Data JPA** - Database ORM
 - **Hibernate** - JPA implementation
 - **MySQL 8.0** - Relational database
@@ -72,6 +81,12 @@ A comprehensive full-stack airline management system built with Spring Boot and 
 - **Vanilla JavaScript** - Client-side logic
 - **Fetch API** - HTTP requests
 - **LocalStorage** - Session management
+
+### Cloud Infrastructure (NEW!)
+- **Render** - Backend hosting (Spring Boot)
+- **Netlify** - Frontend hosting (Static files)
+- **Railway** - MySQL database hosting
+- **UptimeRobot** - Health monitoring and cold start prevention
 
 ### Development Tools
 - **Git** - Version control
@@ -90,6 +105,7 @@ nimbus-airlines/
 │   │   │   ├── AdminController.java
 │   │   │   ├── BookingController.java
 │   │   │   ├── FlightController.java       # Updated: New endpoints
+│   │   │   ├── HealthController.java       # NEW: Health monitoring
 │   │   │   ├── PassengerController.java
 │   │   │   ├── PaymentController.java
 │   │   │   ├── SeatController.java
@@ -106,7 +122,7 @@ nimbus-airlines/
 │   │   ├── repository/              # JPA Repositories
 │   │   │   ├── AdminRepository.java
 │   │   │   ├── BookingRepository.java
-│   │   │   ├── FlightRepository.java       # Updated: Query methods
+│   │   │   ├── FlightRepository.java       # Updated: Rolling date queries
 │   │   │   ├── PassengerRepository.java
 │   │   │   ├── PaymentRepository.java
 │   │   │   └── SeatRepository.java
@@ -114,20 +130,21 @@ nimbus-airlines/
 │   │   ├── service/                 # Business Logic
 │   │   │   ├── AdminService.java
 │   │   │   ├── BookingService.java
-│   │   │   ├── FlightService.java          # Updated: New methods
+│   │   │   ├── FlightService.java          # Updated: 30-day logic
 │   │   │   ├── PassengerService.java
 │   │   │   ├── PaymentService.java
 │   │   │   ├── SeatService.java
 │   │   │   └── TicketService.java
 │   │   │
 │   │   ├── config/                  # Configuration
-│   │   │   └── CorsConfig.java
+│   │   │   ├── CorsConfig.java              # Updated: Multiple origins
+│   │   │   └── SecurityConfig.java          # NEW: Spring Security config
 │   │   │
 │   │   └── NimbusAirlinesApplication.java
 │   │
 │   ├── src/main/resources/
-│   │   ├── application.properties          # Updated: SQL init config
-│   │   └── data.sql                        # New: Auto-date update script
+│   │   ├── application.properties          # Updated: Cloud database config
+│   │   └── data.sql                        # Updated: Rolling date logic
 │   │
 │   └── pom.xml                      # Maven Dependencies
 │
@@ -135,18 +152,19 @@ nimbus-airlines/
 │   ├── css/
 │   │   └── style.css
 │   ├── js/
-│   │   └── script.js
+│   │   ├── script.js                       # Updated: Conditional auth checks
+│   │   └── config.js                       # NEW: API endpoint configuration
 │   ├── index.html                   # Updated: New nav links
 │   ├── login.html                   # User Login
 │   ├── signup.html                  # User Registration
-│   ├── available-flights.html       # New: Browse flights page
-│   ├── search.html                  # Updated: Autofill support
-│   ├── booking.html                 # Booking Form
-│   ├── payment.html                 # Payment Gateway
-│   ├── ticket.html                  # Ticket Display
-│   ├── my-bookings.html             # User Bookings
-│   ├── profile.html                 # User Profile
-│   └── admin.html                   # Admin Dashboard
+│   ├── available-flights.html       # Browse flights page
+│   ├── search.html                  # Updated: Public access, login for booking
+│   ├── booking.html                 # Booking Form (Protected)
+│   ├── payment.html                 # Payment Gateway (Protected)
+│   ├── ticket.html                  # Ticket Display (Protected)
+│   ├── my-bookings.html             # User Bookings (Protected)
+│   ├── profile.html                 # User Profile (Protected)
+│   └── admin.html                   # Admin Dashboard (Protected)
 │
 └── database/
     └── airline.sql                  # Database Schema & Sample Data
@@ -187,15 +205,29 @@ spring.datasource.url=jdbc:mysql://localhost:3306/airline_db
 spring.datasource.username=YOUR_MYSQL_USERNAME
 spring.datasource.password=YOUR_MYSQL_PASSWORD
 
+# JPA Configuration
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+
 # Server Port
 server.port=8080
 
-# SQL Initialization (for auto-date updates)
+# SQL Initialization (for rolling date updates)
 spring.sql.init.mode=always
 spring.jpa.defer-datasource-initialization=true
 ```
 
-### Step 4: Build and Run Backend
+### Step 4: Add Spring Security Dependency
+Ensure `pom.xml` includes:
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+```
+
+### Step 5: Build and Run Backend
 ```bash
 cd airline-backend
 
@@ -210,9 +242,18 @@ mvn spring-boot:run
 
 The backend will start at `http://localhost:8080`
 
-**Note:** On startup, the system automatically updates flight dates to the current month/year.
+**Note:** On startup, the system automatically updates flight dates to use rolling 30-day windows.
 
-### Step 5: Run Frontend
+### Step 6: Configure Frontend
+Create `airline-frontend/js/config.js`:
+
+```javascript
+const CONFIG = {
+    API_BASE_URL: 'http://localhost:8080'
+};
+```
+
+### Step 7: Run Frontend
 ```bash
 cd airline-frontend
 
@@ -249,26 +290,126 @@ Password: password123
 
 ### CORS Configuration
 The backend is configured to accept requests from:
-- `http://localhost:5500`
-- `http://localhost:5501`
-- `http://127.0.0.1:5500`
-- `http://127.0.0.1:5501`
+- `http://localhost:5500` / `http://localhost:5501` (Local development)
+- `http://127.0.0.1:5500` / `http://127.0.0.1:5501` (Alternative localhost)
+- `https://airline-backend-i4wj.onrender.com` (Production backend)
+- `https://nimbus-airlines.netlify.app` (Production frontend)
 
 Update `CorsConfig.java` to add more origins if needed.
 
-### Dynamic Date Management
-The system includes an automatic date update feature:
-- **On Startup**: Flights with past dates are updated to current month/year
-- **Day Preservation**: The day component (e.g., 12, 25) remains unchanged
-- **Edge Cases**: Handles invalid dates (e.g., Feb 30 → Feb 28/29)
-- **Configuration**: Set `spring.sql.init.mode=never` in production after initial deployment
+### Security Configuration (NEW!)
+Spring Security is configured to:
+- **Public Endpoints** (No authentication required):
+  - `/health` - Health check for monitoring
+  - `/ping` - Alternative health check
+  - `/api/passengers/login` - User login
+  - `/api/passengers/signup` - User registration
+  - `/api/admin/login` - Admin login
+  - `/api/flights/**` - All flight search and browse endpoints
+
+- **Protected Endpoints** (Authentication required):
+  - `/api/bookings/**` - Booking operations
+  - `/api/payments/**` - Payment processing
+  - `/api/passengers/{id}` - Passenger profile management
+  - All other endpoints
+
+### Rolling Date Logic (NEW!)
+The system uses a **30-day rolling window** instead of month-based logic:
+- **Flights shown:** Today + next 30 days
+- **No end-of-month gaps:** Works seamlessly across month/year boundaries
+- **Automatic updates:** On startup via `data.sql`
+- **Sample data:** Flights distributed across the 30-day window
+
+```sql
+-- Flights are shown from CURDATE() to DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+-- This prevents "no flights on last day of month" issues
+```
+
+## 🚀 Deployment
+
+### Backend Deployment (Render)
+
+1. **Create Render Account** at https://render.com
+
+2. **Create Web Service**:
+   - Connect your GitHub repository
+   - **Build Command:** `mvn clean install -DskipTests`
+   - **Start Command:** `java -jar target/airline-backend-0.0.1-SNAPSHOT.jar`
+   - **Environment:** Docker
+   - **Plan:** Free
+
+3. **Configure Environment Variables**:
+   ```
+   SPRING_DATASOURCE_URL=jdbc:mysql://your-railway-host:3306/railway
+   SPRING_DATASOURCE_USERNAME=root
+   SPRING_DATASOURCE_PASSWORD=your-password
+   SPRING_JPA_HIBERNATE_DDL_AUTO=update
+   SPRING_SQL_INIT_MODE=always
+   ```
+
+4. **Note:** Render free tier sleeps after 15 minutes of inactivity (see UptimeRobot setup below)
+
+### Database Deployment (Railway)
+
+1. **Create Railway Account** at https://railway.app
+
+2. **Deploy MySQL**:
+   - Create new project → Add MySQL
+   - Note connection details (host, port, username, password, database)
+
+3. **Import Schema**:
+   ```bash
+   mysql -h your-railway-host -u root -p railway < database/airline.sql
+   ```
+
+### Frontend Deployment (Netlify)
+
+1. **Create Netlify Account** at https://netlify.com
+
+2. **Deploy from GitHub**:
+   - Connect repository
+   - **Build command:** Leave empty (static site)
+   - **Publish directory:** `airline-frontend`
+
+3. **Update `config.js`**:
+   ```javascript
+   const CONFIG = {
+       API_BASE_URL: 'https://your-app.onrender.com'
+   };
+   ```
+
+4. **Redeploy** after config update
+
+### Health Monitoring Setup (UptimeRobot) - NEW!
+
+To prevent Render cold starts:
+
+1. **Create UptimeRobot Account** at https://uptimerobot.com
+
+2. **Add Monitor**:
+   - **Monitor Type:** HTTP(s)
+   - **Friendly Name:** Nimbus Airlines Health Check
+   - **URL:** `https://your-app.onrender.com/health`
+   - **Monitoring Interval:** 5 minutes
+   - **Monitor Timeout:** 30 seconds
+
+3. **Verify Status**:
+   - Wait 5-10 minutes
+   - Check monitor shows "Up" status
+   - Your backend will now stay active!
+
+**Why This Works:**
+- Render free tier sleeps after 15 minutes
+- UptimeRobot pings every 5 minutes
+- Keeps your backend awake and responsive
+- No more 30-second cold start delays
 
 ## 🚀 Usage
 
-### User Workflow
-1. **Register/Login** → Create account or login with existing credentials
-2. **Browse Available Flights** → View all upcoming flights with filters (NEW!)
-3. **Search Flights** → Enter source, destination, and date OR use autofill from browsed flights
+### User Workflow (NEW: Public Search!)
+1. **Browse Flights (No Login)** → View all upcoming flights without authentication
+2. **Search Flights (No Login)** → Search direct/connecting flights publicly
+3. **Register/Login (For Booking)** → Login required only when clicking "Book Now"
 4. **Select Flight** → Choose from direct or connecting flights
 5. **Choose Class** → Economy, Business, or First Class
 6. **Select Seats** → Pick seats from interactive seat map
@@ -286,27 +427,48 @@ The system includes an automatic date update feature:
 
 ## 📡 API Documentation
 
-### Authentication
+### Health Check (NEW!)
+```http
+GET /health               # Health check for monitoring
+GET /ping                 # Alternative health endpoint
+```
+
+**Response:**
+```json
+{
+  "status": "UP",
+  "service": "Nimbus Airlines Backend",
+  "timestamp": "2025-01-05 14:30:00",
+  "message": "Service is running"
+}
+```
+
+### Authentication (PUBLIC - No Auth Required)
 ```http
 POST /api/passengers/signup
 POST /api/passengers/login
 POST /api/admin/login
+POST /api/admin/create
 ```
 
-### Flights
+### Flights (PUBLIC - No Auth Required)
 ```http
-GET    /api/flights
-GET    /api/flights/{id}
-GET    /api/flights/upcoming                                              # New: All future flights
-GET    /api/flights/current-month                                        # New: This month's flights
-GET    /api/flights/search?source=DEL&destination=MUM&date=2025-10-28
-GET    /api/flights/search/connecting?source=DEL&destination=HYD&date=2025-10-28
+GET    /api/flights                                                      # All flights
+GET    /api/flights/{id}                                                 # Single flight
+GET    /api/flights/upcoming                                            # Next 30 days (NEW!)
+GET    /api/flights/current-month                                       # Alias for upcoming
+GET    /api/flights/search?source=DEL&destination=MUM&date=2025-01-15   # Direct flights
+GET    /api/flights/search/connecting?source=DEL&destination=HYD&date=2025-01-15
+```
+
+### Flights Management (PROTECTED - Auth Required)
+```http
 POST   /api/flights
 PUT    /api/flights/{id}
 DELETE /api/flights/{id}
 ```
 
-### Bookings
+### Bookings (PROTECTED - Auth Required)
 ```http
 GET    /api/bookings
 GET    /api/bookings/{id}
@@ -315,7 +477,7 @@ POST   /api/bookings
 PUT    /api/bookings/{id}/cancel
 ```
 
-### Seats
+### Seats (PROTECTED - Auth Required)
 ```http
 GET    /api/seats/flight/{flightId}
 GET    /api/seats/flight/{flightId}/available
@@ -323,20 +485,20 @@ GET    /api/seats/flight/{flightId}/class/{seatClass}
 POST   /api/seats/book
 ```
 
-### Payments
+### Payments (PROTECTED - Auth Required)
 ```http
 POST   /api/payments
 GET    /api/payments/{id}
 ```
 
-### Tickets
+### Tickets (PROTECTED - Auth Required)
 ```http
 GET    /api/tickets/{bookingId}/download
 ```
 
 ### Example Request/Response
 
-**GET /api/flights/upcoming**
+**GET /api/flights/upcoming** (NEW - Rolling 30-day window)
 ```json
 [
   {
@@ -344,7 +506,7 @@ GET    /api/tickets/{bookingId}/download
     "flightNumber": "NB101",
     "source": "DEL",
     "destination": "MUM",
-    "departureDate": "2025-12-28",
+    "departureDate": "2025-01-07",
     "departureTime": "08:00:00",
     "arrivalTime": "10:30:00",
     "airline": "Nimbus Air",
@@ -355,6 +517,27 @@ GET    /api/tickets/{bookingId}/download
     "firstClassPrice": 15000.0
   }
 ]
+```
+
+**POST /api/passengers/login**
+```json
+{
+  "email": "rahul@test.com",
+  "password": "password123"
+}
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "firstName": "Rahul",
+  "lastName": "Sharma",
+  "email": "rahul@test.com",
+  "phoneNumber": "9876543210",
+  "age": 28,
+  "gender": "Male"
+}
 ```
 
 **POST /api/bookings**
@@ -375,13 +558,13 @@ GET    /api/tickets/{bookingId}/download
 }
 ```
 
-**Response**
+**Response:**
 ```json
 {
   "id": 21,
   "passenger": {...},
   "flight": {...},
-  "bookingDate": "2024-10-24T12:39:20",
+  "bookingDate": "2025-01-05T12:39:20",
   "status": "CONFIRMED",
   "numberOfSeats": 1,
   "totalAmount": 14830.0,
@@ -429,8 +612,8 @@ GET    /api/tickets/{bookingId}/download
 
 ### User Interface
 - **Home Page** - Landing page with features
-- **Available Flights** - Browse all upcoming flights with filters (NEW!)
-- **Flight Search** - Direct and connecting flight results with autofill
+- **Available Flights** - Browse all upcoming flights (30-day rolling window)
+- **Flight Search** - Public access, login required for booking (NEW!)
 - **Seat Selection** - Interactive seat map
 - **Booking Summary** - Detailed booking information
 - **Payment Gateway** - Multiple payment options
@@ -444,25 +627,62 @@ GET    /api/tickets/{bookingId}/download
 
 ## 🔧 Key Features Implementation
 
-### Dynamic Flight Date Management
-```sql
--- data.sql - Automatic date update on startup
-UPDATE flights
-SET departure_date = DATE_FORMAT(
-    CONCAT(YEAR(CURDATE()), '-', MONTH(CURDATE()), '-', DAY(departure_date)),
-    '%Y-%m-%d'
-)
-WHERE departure_date < CURDATE()
-   OR YEAR(departure_date) != YEAR(CURDATE())
-   OR MONTH(departure_date) != MONTH(CURDATE());
+### Public Flight Search (NEW!)
+```java
+// SecurityConfig.java - Public endpoints
+.requestMatchers(
+    "/api/passengers/login",
+    "/api/passengers/signup",
+    "/api/flights/**"  // All flight endpoints public
+).permitAll()
 ```
 
-### Available Flights Browsing
 ```javascript
-// FlightRepository.java - Query upcoming flights
-@Query("SELECT f FROM Flight f WHERE f.departureDate >= :today 
-        ORDER BY f.departureDate ASC, f.departureTime ASC")
-List<Flight> findUpcomingFlights(LocalDate today);
+// search.html - Conditional authentication
+function bookDirectFlight(flightId) {
+    const passenger = localStorage.getItem('passenger');
+    
+    if (!passenger) {
+        alert('🔒 Please login first to book flights');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    // Proceed with booking...
+}
+```
+
+### Rolling 30-Day Date Logic (NEW!)
+```java
+// FlightRepository.java - Rolling window query
+@Query("SELECT f FROM Flight f WHERE f.departureDate >= CURRENT_DATE " +
+       "AND f.departureDate <= DATE_ADD(CURRENT_DATE, 30) " +
+       "ORDER BY f.departureDate ASC, f.departureTime ASC")
+List<Flight> findUpcomingFlights();
+```
+
+```sql
+-- data.sql - Automatic date updates on startup
+UPDATE flights
+SET departure_date = DATE_ADD(
+    CURDATE(), 
+    INTERVAL (DAY(departure_date) % 28) DAY
+)
+WHERE departure_date < CURDATE()
+   OR departure_date > DATE_ADD(CURDATE(), INTERVAL 30 DAY);
+```
+
+### Health Monitoring (NEW!)
+```java
+// HealthController.java - Lightweight endpoint
+@GetMapping("/health")
+public ResponseEntity<Map<String, Object>> health() {
+    Map<String, Object> response = new HashMap<>();
+    response.put("status", "UP");
+    response.put("service", "Nimbus Airlines Backend");
+    response.put("timestamp", LocalDateTime.now());
+    return ResponseEntity.ok(response);
+}
 ```
 
 ### Search Autofill Feature
@@ -492,7 +712,7 @@ private String seatNumbers; // JSON: {"flight1": "12A", "flight2": "14C"}
 - **First**: Free 40kg, ₹10/kg extra
 
 ### Connecting Flight Algorithm
-- Finds flights with layover between 1-6 hours
+- Finds flights with layover between 1-8 hours
 - Validates time compatibility
 - Calculates total journey price
 
@@ -516,6 +736,16 @@ mysql -u root -p
 # Ensure database 'airline_db' exists
 ```
 
+### Login/Signup Not Working (NEW!)
+```bash
+# Verify SecurityConfig.java exists and has authentication endpoints public
+# Check browser console for CORS errors
+# Test endpoints directly:
+curl -X POST http://localhost:8080/api/passengers/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@test.com","password":"password"}'
+```
+
 ### Flight Dates Not Updating
 ```bash
 # Verify data.sql is in src/main/resources/
@@ -523,25 +753,58 @@ mysql -u root -p
 spring.sql.init.mode=always
 spring.jpa.defer-datasource-initialization=true
 
-# Check console logs for SQL execution errors
+# Check console logs for SQL execution
 ```
 
-### Available Flights Page Shows No Data
+### No Flights Showing (End of Month Issue)
 ```bash
-# Test API endpoint directly
+# OLD PROBLEM: Month-based logic caused gaps on last day of month
+# NEW SOLUTION: Rolling 30-day window always shows flights
+
+# Test API endpoint:
 curl http://localhost:8080/api/flights/upcoming
 
-# Ensure at least one flight has departure_date >= today
-# Check browser console for errors
+# Should return flights from today to 30 days ahead
+```
+
+### UptimeRobot Monitor Shows "Down"
+```bash
+# Verify health endpoint works:
+curl https://your-app.onrender.com/health
+
+# Check Render logs for errors
+# Ensure URL in UptimeRobot is correct (https://, no typos)
+# Verify SecurityConfig allows /health endpoint
 ```
 
 ### CORS Issues
 - Ensure frontend runs on allowed ports (5500, 5501)
-- Update `CorsConfig.java` if using different ports
+- Update `CorsConfig.java` to include your production URLs
+- Check browser console for specific CORS errors
 
 ### Session Issues
 - Clear browser localStorage
 - Logout and login again
+- Check that login endpoints are public in SecurityConfig
+
+## 🔒 Security Best Practices
+
+1. **Never commit sensitive data** to Git:
+   - Add `application.properties` to `.gitignore`
+   - Use environment variables in production
+
+2. **Password Security**:
+   - Consider adding password hashing (BCrypt) in production
+   - Current implementation stores plain text (development only)
+
+3. **API Security**:
+   - Public endpoints are read-only (flights)
+   - All write operations require authentication
+   - Admin endpoints protected separately
+
+4. **CORS Configuration**:
+   - Only allow trusted origins
+   - Update `CorsConfig.java` for production
 
 ## 🤝 Contributing
 
@@ -564,8 +827,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Spring Boot Documentation
+- Spring Security Documentation
 - MySQL Community
 - iText PDF Library
+- Render, Netlify, Railway for cloud hosting
+- UptimeRobot for health monitoring
 - All contributors and testers
 
 ## 📧 Contact
@@ -573,6 +839,19 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 For questions or support:
 - **GitHub**: [@anindita-19](https://github.com/anindita-19)
 - **Repository**: [Airline Management System](https://github.com/anindita-19/Airline-Management-System.git)
+- **Live Demo**: [Nimbus Airlines](https://nimbus-airlines.netlify.app)
+
+---
+
+## 🆕 Recent Updates (v2.0)
+
+- ✅ **Public Flight Search** - Browse flights without login
+- ✅ **Rolling 30-Day Logic** - No more end-of-month gaps
+- ✅ **Spring Security Integration** - Granular endpoint protection
+- ✅ **Health Monitoring** - `/health` endpoint for uptime tracking
+- ✅ **Cold Start Prevention** - UptimeRobot integration
+- ✅ **Cloud Deployment** - Render + Netlify + Railway
+- ✅ **Improved UX** - Login required only for booking actions
 
 ---
 
