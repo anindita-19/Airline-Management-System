@@ -258,18 +258,29 @@
             color: #3498db;
         }
 
-        /* ============================================ */
-        /* RESPONSIVE STYLES FOR AVAILABLE FLIGHTS */
-        /* ============================================ */
+        .login-prompt {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
 
-        /* Tablets (768px and below) */
+        .login-prompt a {
+            color: #2980b9;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .login-prompt a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive styles */
         @media (max-width: 768px) {
             .page-header h2 {
                 font-size: 1.5rem;
-            }
-
-            .page-header p {
-                font-size: 1rem;
             }
 
             .filter-bar {
@@ -283,169 +294,20 @@
                 min-width: 100%;
             }
 
-            .filter-group label {
-                margin-bottom: 0.3rem;
-            }
-
-            .filter-group select,
-            .filter-group input {
-                width: 100%;
-            }
-
-            .flight-card {
-                padding: 1rem;
-            }
-
-            .flight-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .flight-number {
-                font-size: 1.1rem;
-            }
-
             .route-section {
                 grid-template-columns: 1fr;
-                gap: 1rem;
             }
 
             .route-arrow {
                 transform: rotate(90deg);
-                font-size: 1.5rem;
-            }
-
-            .city-code {
-                font-size: 1.5rem;
-            }
-
-            .time {
-                font-size: 1rem;
-            }
-
-            .flight-details {
-                grid-template-columns: 1fr 1fr;
             }
 
             .price-section {
                 grid-template-columns: 1fr;
-                gap: 0.8rem;
             }
 
             .action-buttons {
                 flex-direction: column;
-            }
-
-            .btn-book,
-            .btn-autofill {
-                width: 100%;
-            }
-        }
-
-        /* Mobile phones (480px and below) */
-        @media (max-width: 480px) {
-            .page-header {
-                margin: 1rem 0;
-            }
-
-            .page-header h2 {
-                font-size: 1.3rem;
-            }
-
-            .page-header p {
-                font-size: 0.9rem;
-            }
-
-            .filter-bar {
-                padding: 0.8rem;
-            }
-
-            .filter-group select,
-            .filter-group input {
-                font-size: 0.9rem;
-                padding: 0.4rem;
-            }
-
-            .flight-card {
-                padding: 0.8rem;
-                border-radius: 8px;
-            }
-
-            .flight-number {
-                font-size: 1rem;
-            }
-
-            .airline {
-                font-size: 0.85rem;
-            }
-
-            .date-badge {
-                font-size: 0.8rem;
-                padding: 0.3rem 0.6rem;
-            }
-
-            .city-code {
-                font-size: 1.3rem;
-            }
-
-            .time {
-                font-size: 0.9rem;
-            }
-
-            .route-arrow {
-                font-size: 1.2rem;
-            }
-
-            .flight-details {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-
-            .detail-item {
-                padding: 0.6rem;
-            }
-
-            .detail-label {
-                font-size: 0.8rem;
-            }
-
-            .detail-value {
-                font-size: 1rem;
-            }
-
-            .price-section {
-                gap: 0.5rem;
-            }
-
-            .price-card {
-                padding: 0.8rem;
-            }
-
-            .class-name {
-                font-size: 0.8rem;
-            }
-
-            .price-amount {
-                font-size: 1.2rem;
-            }
-
-            .btn-book,
-            .btn-autofill {
-                padding: 0.7rem;
-                font-size: 0.9rem;
-            }
-
-            .no-flights {
-                padding: 2rem 1rem;
-            }
-
-            .no-flights-icon {
-                font-size: 3rem;
-            }
-
-            .loading {
-                padding: 2rem;
-                font-size: 1rem;
             }
         }
     </style>
@@ -459,7 +321,7 @@
                 <li><a href="available-flights.html">Available Flights</a></li>
                 <li><a href="search.html">Search Flights</a></li>
                 <li><a href="my-bookings.html">My Bookings</a></li>
-                <li><a href="#" id="logoutBtn">Logout</a></li>
+                <li><a href="login.html" id="authLink">Login</a></li>
             </ul>
         </div>
     </nav>
@@ -470,16 +332,21 @@
             <p style="color: white;">Browse all upcoming flights and book your journey</p>
         </div>
 
+        <!-- Show login prompt if not logged in -->
+        <div id="loginPrompt" class="login-prompt" style="display: none;">
+            ℹ️ <a href="login.html">Login</a> or <a href="signup.html">Sign up</a> to book flights
+        </div>
+
         <div class="filter-bar">
             <div class="filter-group">
-                <label>🔍 From:</label>
+                <label>📍 From:</label>
                 <select id="filterSource">
                     <option value="">All Cities</option>
                 </select>
             </div>
             
             <div class="filter-group">
-                <label>🔍 To:</label>
+                <label>📍 To:</label>
                 <select id="filterDestination">
                     <option value="">All Cities</option>
                 </select>
@@ -509,32 +376,42 @@
         </div>
     </div>
     <script src="js/config.js"></script>
-    <script src="js/script.js"></script>
     <script>
         let allFlights = [];
         let filteredFlights = [];
+        let isLoggedIn = false;
 
-        // Check authentication
-        const passenger = localStorage.getItem('passenger');
-        if (!passenger) {
-            alert('⚠️ Please login first to view flights');
-            window.location.href = 'login.html';
-        }
-        
-        checkAuth();
-
-        // Load flights on page load
-        document.addEventListener('DOMContentLoaded', async () => {
-            await loadUpcomingFlights();
-            populateFilters();
+        // Check if user is logged in (but don't require it)
+        document.addEventListener('DOMContentLoaded', () => {
+            const passenger = localStorage.getItem('passenger');
+            isLoggedIn = !!passenger;
+            
+            // Update nav link
+            const authLink = document.getElementById('authLink');
+            if (isLoggedIn) {
+                authLink.textContent = 'Logout';
+                authLink.href = '#';
+                authLink.onclick = logout;
+            } else {
+                // Show login prompt
+                document.getElementById('loginPrompt').style.display = 'block';
+            }
+            
+            loadUpcomingFlights();
         });
+
+        function logout() {
+            localStorage.removeItem('passenger');
+            window.location.href = 'index.html';
+        }
 
         async function loadUpcomingFlights() {
             try {
-                const response = await fetch(CONFIG.API_BASE_URL + '/api/flights/upcoming');
+                const response = await fetch('http://localhost:8080/api/flights/upcoming');
                 allFlights = await response.json();
                 filteredFlights = [...allFlights];
                 
+                populateFilters();
                 displayFlights(filteredFlights);
             } catch (error) {
                 console.error('Error loading flights:', error);
@@ -674,20 +551,24 @@
         }
 
         function formatTime(timeString) {
-            return timeString.substring(0, 5); // HH:MM
+            return timeString.substring(0, 5);
         }
 
         function autofillSearch(source, destination, date) {
-            // Store in localStorage for search page
             localStorage.setItem('searchSource', source);
             localStorage.setItem('searchDestination', destination);
             localStorage.setItem('searchDate', date);
-            
-            // Redirect to search page
             window.location.href = 'search.html';
         }
 
         function bookFlight(flightId) {
+            // Check if logged in before booking
+            if (!isLoggedIn) {
+                alert('⚠️ Please login first to book flights');
+                window.location.href = 'login.html';
+                return;
+            }
+            
             localStorage.setItem('selectedFlight', flightId);
             localStorage.setItem('isConnecting', 'false');
             window.location.href = 'booking.html';
